@@ -117,9 +117,9 @@ responsable únicamente de identidad y autorización, no de consultar estadísti
 
 ## Implementación por etapas
 
-- [ ] Mapear de forma explícita los cinco valores de `employee.department`.
-- [ ] Implementar `Login` sin comparar ni almacenar contraseñas en texto plano.
-- [ ] Emitir claims de rol y añadir `Admin` cuando el departamento sea `Management`.
+- [x] Mapear de forma explícita los cinco valores de `employee.department`.
+- [x] Implementar `Login` sin comparar ni almacenar contraseñas en texto plano.
+- [x] Emitir claims de rol y añadir `Admin` cuando el departamento sea `Management`.
 - [ ] Implementar `Logout` y `GetCurrentUser`.
 - [ ] Definir y probar políticas de autorización por rol.
 - [ ] Adaptar navegación y Home a los claims del usuario.

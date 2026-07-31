@@ -1,5 +1,7 @@
 using Airport.Features.Auth.Application.Ports;
+using Airport.Features.Auth.Infrastructure.Persistence;
 using Airport.Features.Auth.Infrastructure.Security;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +11,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAuthInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        string connectionString)
     {
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
@@ -27,6 +30,11 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IActiveSessionRegistry, MemoryActiveSessionRegistry>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+        services.AddSingleton<IPasswordVerifier, LegacyMd5PasswordVerifier>();
+        services.AddDbContextPool<AuthDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql =>
+                npgsql.MapEnum<EmployeeDepartment>("employee_department", "airportdb")));
+        services.AddScoped<IEmployeeCredentialReader, PostgresEmployeeCredentialReader>();
 
         return services;
     }

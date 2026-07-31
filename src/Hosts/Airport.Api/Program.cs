@@ -21,7 +21,7 @@ if (allowedOrigins.Length == 0)
 builder.Services.AddOpenApi();
 builder.Services.AddApiErrorHandling();
 builder.Services.AddAirportCaching();
-builder.Services.AddAuthModule(builder.Configuration);
+builder.Services.AddAuthModule(builder.Configuration, connectionString);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AirportWeb", policy =>
@@ -51,5 +51,6 @@ app.MapGet("/", () => Results.Ok(new
 }));
 
 app.MapFlightsModule();
+app.MapAuthModule();
 
 app.Run();

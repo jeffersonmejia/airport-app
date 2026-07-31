@@ -1,9 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Airport.Features.Auth.Application.Ports;
+using Airport.Features.Auth.Application.Login;
+using Airport.Features.Auth.Application.Roles;
 using Airport.Features.Auth.Infrastructure;
 using Airport.Features.Auth.Infrastructure.Security;
+using Airport.Features.Auth.Presentation.Api.Login;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -14,12 +19,15 @@ public static class AuthModule
 {
     public static IServiceCollection AddAuthModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        string connectionString)
     {
         var jwt = configuration.GetRequiredSection(JwtOptions.SectionName).Get<JwtOptions>()
             ?? throw new InvalidOperationException("Falta la configuración JWT en User Secrets.");
 
-        services.AddAuthInfrastructure(configuration);
+        services.AddSingleton<LoginValidator>();
+        services.AddScoped<LoginHandler>();
+        services.AddAuthInfrastructure(configuration, connectionString);
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -36,6 +44,8 @@ public static class AuthModule
                     ValidateLifetime = true,
                     RequireExpirationTime = true,
                     RequireSignedTokens = true,
+                    NameClaimType = JwtRegisteredClaimNames.UniqueName,
+                    RoleClaimType = "role",
                     ClockSkew = TimeSpan.FromSeconds(jwt.ClockSkewSeconds)
                 };
                 options.Events = new JwtBearerEvents
@@ -43,9 +53,18 @@ public static class AuthModule
                     OnTokenValidated = ValidateActiveSessionAsync
                 };
             });
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder()
+            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin));
 
         return services;
+    }
+
+    public static IEndpointRouteBuilder MapAuthModule(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapGroup("/api/auth")
+            .MapLogin();
+
+        return endpoints;
     }
 
     private static async Task ValidateActiveSessionAsync(TokenValidatedContext context)
