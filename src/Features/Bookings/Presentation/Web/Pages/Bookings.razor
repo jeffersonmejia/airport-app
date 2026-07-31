@@ -85,9 +85,9 @@
                     @foreach (var booking in pageResult.Items)
                     {
                         <tr>
-                            <td><strong>#@booking.BookingId</strong></td>
-                            <td>@booking.FlightId</td>
-                            <td>@booking.PassengerId</td>
+                            <td><strong>#@booking.BookingId.ToString("N0", CultureInfo.InvariantCulture)</strong></td>
+                            <td>@booking.FlightId.ToString("N0", CultureInfo.InvariantCulture)</td>
+                            <td>@booking.PassengerId.ToString("N0", CultureInfo.InvariantCulture)</td>
                             <td>@(booking.Seat ?? "Sin asignar")</td>
                             <td>@booking.Price.ToString("C2")</td>
                             <td>
