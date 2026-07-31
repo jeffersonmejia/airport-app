@@ -80,14 +80,24 @@ familias outline, filled y rounded sin una regla de estado explícita.
 
 ## Implementación por etapas
 
-- [ ] Definir tokens de color, tipografía, espaciado, radio, elevación y movimiento.
-- [ ] Crear el shell responsive y la navegación principal.
-- [ ] Diseñar estados de loading, empty, error y success.
-- [ ] Construir la búsqueda y listado de vuelos como primer slice visual.
-- [ ] Conectar el slice con Airport.Api usando contratos explícitos.
-- [ ] Verificar teclado, foco visible, lectores de pantalla y contraste.
+- [x] Definir tokens de color, tipografía, espaciado, radio, elevación y movimiento.
+- [x] Crear el shell responsive y la navegación principal.
+- [x] Diseñar estados de loading, empty, error y success.
+- [x] Construir la búsqueda y detalle de vuelo como primer slice visual.
+- [x] Conectar el slice con Airport.Api usando un cliente HTTP y contrato explícito.
+- [x] Incorporar estructura semántica, nombres accesibles, foco visible y soporte para
+      `prefers-reduced-motion`.
+- [ ] Verificar manualmente teclado, lectores de pantalla y contraste.
 - [ ] Probar en anchos móvil, tablet y escritorio.
-- [ ] Reutilizar los mismos tokens en todas las features posteriores.
+- [x] Centralizar los tokens para reutilizarlos en las features posteriores.
+
+Durante la reorganización feature-first, el shell y los tokens permanecerán en el
+host `Airport.Web`. La página, formulario de búsqueda, estados y tarjeta de vuelos se
+moverán a `Features/Flights/Presentation/Web`, de modo que la presentación específica
+también pertenezca a su feature.
+
+La implementación visual se realizó sin ejecutar restore, build, servidor local ni
+pruebas de navegador, de acuerdo con las restricciones de esta etapa.
 
 ## Condición global de entrega
 

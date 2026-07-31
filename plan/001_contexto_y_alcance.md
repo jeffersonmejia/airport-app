@@ -26,6 +26,8 @@ equipo, compuesto por:
 
 - PostgreSQL nativo con la información proporcionada por el examen.
 - Backend ASP.NET Core sobre .NET 10.
+- Entity Framework Core con el proveedor Npgsql para el acceso obligatorio a
+  PostgreSQL.
 - Arquitectura hexagonal, screaming architecture y vertical slices.
 - Interfaz web minimalista basada en Material Design.
 - Pruebas unitarias y de integración para los primeros casos de uso.
@@ -47,18 +49,23 @@ durante el desarrollo inicial.
 5. Las credenciales de la aplicación no se escribirán en archivos versionados. Se
    utilizarán user-secrets o variables de entorno.
 6. La carga masiva no se realizará con EF Core: PostgreSQL importará el dump y la
-   aplicación consumirá la base ya creada.
-7. El backend será un monolito modular. Los nombres y carpetas expresarán primero el
-   negocio y cada operación se organizará como un vertical slice.
+   aplicación consumirá la base ya creada mediante EF Core y Npgsql. EF Core es
+   obligatorio para el acceso de la aplicación, no para restaurar los 2 GiB del dump.
+7. El backend será un monolito modular organizado primero por feature. Cada feature
+   contendrá sus propias carpetas `Domain`, `Application`, `Infrastructure` y
+   `Presentation`; cada operación de `Application` será un vertical slice.
 8. El estilo visual seguirá Material Design con rosa pastel, composición minimalista,
    iconografía Material y animaciones suaves.
 
 ## Orden general
 
-1. Crear y validar la base siguiendo `run.txt`.
-2. Generar la solución y sus límites arquitectónicos.
-3. Conectar Infrastructure con PostgreSQL.
-4. Implementar un slice vertical completo como referencia.
-5. Crear el shell visual y el sistema de diseño.
-6. Incorporar features y pruebas por prioridad del examen.
-7. Validar rendimiento, accesibilidad y documentación.
+1. Crear y validar la base siguiendo `run.txt`. **Responsabilidad del usuario; no se
+   ejecutó ni comprobó en esta etapa.**
+2. Generar la solución y sus límites arquitectónicos. **Completado.**
+3. Preparar Infrastructure para PostgreSQL sin abrir conexiones. **Completado.**
+4. Implementar un slice vertical completo como referencia. **Completado con
+   `Flights/GetFlight`.**
+5. Crear el shell visual y el sistema de diseño. **Completado.**
+6. Incorporar features y pruebas por prioridad del examen. **Pendiente.**
+7. Validar rendimiento, accesibilidad y documentación. **Pendiente; no se ejecutaron
+   builds ni comprobaciones en esta etapa.**

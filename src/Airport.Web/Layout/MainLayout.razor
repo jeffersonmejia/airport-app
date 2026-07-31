@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <aside class="side-nav @(menuOpen ? "side-nav--open" : null)" aria-label="Navegación principal">
+        <a class="brand" href="/" aria-label="Airport, inicio">
+            <span class="brand__mark material-symbols-rounded" aria-hidden="true">flight_takeoff</span>
+            <span>
+                <strong>Airport</strong>
+                <small>Viaja simple</small>
+            </span>
+        </a>
+
+        <NavMenu />
+
+        <div class="side-nav__footer">
+            <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
+            <span>Hecho para volar ligero</span>
+        </div>
+    </aside>
+
+    @if (menuOpen)
+    {
+        <button class="nav-backdrop" aria-label="Cerrar navegación" @onclick="ToggleMenu"></button>
+    }
+
+    <div class="app-content">
+        <header class="top-app-bar">
+            <button class="icon-button menu-button" type="button" aria-label="Abrir navegación" @onclick="ToggleMenu">
+                <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+            </button>
+            <div class="top-app-bar__title">
+                <span>Explora tu próximo vuelo</span>
+                <small>Información clara, sin turbulencias</small>
+            </div>
+            <button class="avatar" type="button" aria-label="Perfil de usuario">JM</button>
+        </header>
+
+        <main class="page-content">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    private bool menuOpen;
+
+    private void ToggleMenu() => menuOpen = !menuOpen;
+}

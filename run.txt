@@ -6,4 +6,8 @@
 #    Si el disco es lento, aumenta el uso de swap o el equipo está ocupado, puede tardar hasta 4 horas.
 # 6. Ejecutar solamente el siguiente comando. Cuando psql solicite la contraseña, escribir: postgres
 
-PGOPTIONS='-c work_mem=4MB -c maintenance_work_mem=128MB -c max_parallel_maintenance_workers=0' nice -n 15 ionice -c 2 -n 7 psql -X -W -h localhost -p 5432 -U postgres -d airport_exam -v ON_ERROR_STOP=1 -f aeropuerto-db.sql
+#Migracion db 
+PGOPTIONS='-c work_mem=4MB -c maintenance_work_mem=128MB -c max_parallel_maintenance_workers=0' nice -n 15 ionice -c 2 -n 7 psql -X -W -h localhost -p 5432 -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE aereopuerto_db;' -c '\connect aereopuerto_db' -f aeropuerto-db.sql
+
+## CONTEO registros
+psql -X -W -h localhost -p 5432 -U postgres -d aereopuerto_db -v ON_ERROR_STOP=1 -c "CREATE TEMP TABLE conteos (registros bigint); DO \$\$ DECLARE tabla record; BEGIN FOR tabla IN SELECT tablename FROM pg_tables WHERE schemaname = 'airportdb' LOOP EXECUTE format('INSERT INTO conteos SELECT count(*) FROM %I.%I', 'airportdb', tabla.tablename); END LOOP; END \$\$; SELECT sum(registros) AS total_registros FROM conteos;"

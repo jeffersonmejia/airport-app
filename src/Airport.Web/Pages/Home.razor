@@ -1,0 +1,186 @@
+@page "/"
+@using Airport.Web.Models
+@using Airport.Web.Services
+@inject FlightsClient FlightsClient
+
+<PageTitle>Vuelos | Airport</PageTitle>
+
+<section class="hero" aria-labelledby="page-title">
+    <div class="hero__content">
+        <span class="eyebrow">
+            <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+            Tu viaje empieza aquí
+        </span>
+        <h1 id="page-title">Encuentra los detalles de tu vuelo</h1>
+        <p>Consulta horarios y datos esenciales usando el identificador del vuelo.</p>
+
+        <form class="search-card" @onsubmit="SearchAsync" @onsubmit:preventDefault aria-label="Buscar vuelo">
+            <label for="flight-id">Identificador del vuelo</label>
+            <div class="search-field">
+                <span class="material-symbols-rounded search-field__icon" aria-hidden="true">search</span>
+                <input id="flight-id"
+                       type="number"
+                       min="1"
+                       inputmode="numeric"
+                       placeholder="Ej. 42"
+                       @bind="flightId"
+                       aria-describedby="flight-help" />
+                <button class="primary-button" type="submit" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="button-loader" aria-hidden="true"></span>
+                        <span>Buscando</span>
+                    }
+                    else
+                    {
+                        <span>Buscar vuelo</span>
+                        <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+                    }
+                </button>
+            </div>
+            <small id="flight-help">Ingresa un número mayor que cero.</small>
+        </form>
+
+        <div class="quick-search" aria-label="Búsquedas rápidas">
+            <span>Prueba con:</span>
+            @foreach (var suggestion in suggestions)
+            {
+                <button class="filter-chip" type="button" @onclick="() => SearchSuggestionAsync(suggestion)">
+                    <span class="material-symbols-rounded" aria-hidden="true">flight</span>
+                    @suggestion
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+        <div class="orbit orbit--large"></div>
+        <div class="orbit orbit--small"></div>
+        <span class="material-symbols-rounded hero__plane">flight</span>
+        <div class="destination-card destination-card--top">
+            <span class="material-symbols-rounded">schedule</span>
+            <span><small>Información</small><strong>En tiempo real</strong></span>
+        </div>
+        <div class="destination-card destination-card--bottom">
+            <span class="material-symbols-rounded">luggage</span>
+            <span><small>Tu viaje</small><strong>En un solo lugar</strong></span>
+        </div>
+    </div>
+</section>
+
+<section class="result-section" aria-live="polite" aria-busy="@isLoading">
+    @if (isLoading)
+    {
+        <div class="flight-card flight-card--skeleton" aria-label="Cargando información del vuelo">
+            <span class="skeleton skeleton--short"></span>
+            <span class="skeleton skeleton--title"></span>
+            <span class="skeleton skeleton--wide"></span>
+        </div>
+    }
+    else if (errorMessage is not null)
+    {
+        <div class="state-card state-card--error" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+            <div>
+                <h2>No pudimos completar la búsqueda</h2>
+                <p>@errorMessage</p>
+            </div>
+            <button class="text-button" type="button" @onclick="SearchAsync">Reintentar</button>
+        </div>
+    }
+    else if (hasSearched && flight is null)
+    {
+        <div class="state-card">
+            <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+            <div>
+                <h2>Ese vuelo no aparece</h2>
+                <p>Revisa el identificador e intenta con otro número.</p>
+            </div>
+        </div>
+    }
+    else if (flight is not null)
+    {
+        <article class="flight-card">
+            <header class="flight-card__header">
+                <div>
+                    <span class="status-chip"><span></span> Vuelo encontrado</span>
+                    <h2>@flight.Number</h2>
+                </div>
+                <span class="flight-id">ID @flight.Id</span>
+            </header>
+
+            <div class="timeline">
+                <div class="timeline__point">
+                    <small>Salida</small>
+                    <strong>@flight.Departure.ToLocalTime().ToString("HH:mm")</strong>
+                    <span>@flight.Departure.ToLocalTime().ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="timeline__route">
+                    <span>@flight.DurationHours.ToString("0.##") h</span>
+                    <div><i></i><span class="material-symbols-rounded" aria-hidden="true">flight</span><i></i></div>
+                    <small>Duración estimada</small>
+                </div>
+                <div class="timeline__point timeline__point--end">
+                    <small>Llegada</small>
+                    <strong>@flight.Arrival.ToLocalTime().ToString("HH:mm")</strong>
+                    <span>@flight.Arrival.ToLocalTime().ToString("dd MMM yyyy")</span>
+                </div>
+            </div>
+
+            <footer class="flight-card__footer">
+                <span><span class="material-symbols-rounded" aria-hidden="true">airlines</span> Aerolínea @flight.AirlineId</span>
+                <span><span class="material-symbols-rounded" aria-hidden="true">airplane_ticket</span> Avión @flight.AirplaneId</span>
+            </footer>
+        </article>
+    }
+    else
+    {
+        <div class="welcome-strip">
+            <span class="material-symbols-rounded" aria-hidden="true">tips_and_updates</span>
+            <p><strong>Todo listo para despegar.</strong> Tu resultado aparecerá aquí.</p>
+        </div>
+    }
+</section>
+
+@code {
+    private static readonly int[] suggestions = [1, 10, 42];
+    private int? flightId;
+    private FlightViewModel? flight;
+    private string? errorMessage;
+    private bool isLoading;
+    private bool hasSearched;
+
+    private async Task SearchSuggestionAsync(int suggestion)
+    {
+        flightId = suggestion;
+        await SearchAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        if (flightId is null or <= 0)
+        {
+            errorMessage = "Ingresa un identificador de vuelo mayor que cero.";
+            hasSearched = true;
+            return;
+        }
+
+        isLoading = true;
+        hasSearched = true;
+        errorMessage = null;
+        flight = null;
+
+        try
+        {
+            flight = await FlightsClient.FindByIdAsync(flightId.Value, CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "La API no está disponible en este momento. Inténtalo nuevamente.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
