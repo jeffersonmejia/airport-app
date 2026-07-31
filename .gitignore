@@ -1,0 +1,54 @@
+# Build de .NET
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# IDE y sistema operativo
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# Paquetes y publicación
+*.nupkg
+*.snupkg
+packages/
+publish/
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+.pgpass
+
+# Dump pesado entregado para el examen; no versionarlo
+/aeropuerto-db.sql
+*.sql.gz
+*.dump
+*.backup
+
+# Estado y temporales del importador
+.state/
+import-work/
+*.log
+*.tmp
+*.pid
