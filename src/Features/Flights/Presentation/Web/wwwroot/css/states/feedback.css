@@ -1,0 +1,55 @@
+.welcome-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 104px;
+    padding: 24px;
+    color: var(--text-muted);
+}
+
+.welcome-strip .material-symbols-rounded {
+    color: var(--primary);
+}
+
+.welcome-strip p {
+    margin: 0;
+}
+
+.state-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 26px;
+}
+
+.state-card > .material-symbols-rounded {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    color: var(--on-primary-container);
+    background: var(--primary-container);
+    border-radius: 15px;
+}
+
+.state-card--error > .material-symbols-rounded {
+    color: var(--error);
+    background: var(--error-container);
+}
+
+.state-card h2,
+.state-card p {
+    margin: 0;
+}
+
+.state-card h2 {
+    font-size: 1rem;
+}
+
+.state-card p {
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}

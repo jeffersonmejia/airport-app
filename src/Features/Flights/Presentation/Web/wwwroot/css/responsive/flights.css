@@ -1,0 +1,97 @@
+@media (max-width: 920px) {
+    .hero {
+        grid-template-columns: 1fr;
+    }
+
+    .hero__visual {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero h1 {
+        font-size: clamp(2.25rem, 13vw, 3.35rem);
+    }
+
+    .search-field {
+        grid-template-columns: 1fr;
+    }
+
+    .search-field__icon {
+        top: 27px;
+    }
+
+    .hero__visual {
+        min-height: 270px;
+    }
+
+    .hero__plane {
+        font-size: 70px;
+    }
+
+    .destination-card--top {
+        top: 28px;
+        right: 14px;
+    }
+
+    .destination-card--bottom {
+        bottom: 28px;
+        left: 14px;
+    }
+
+    .state-card {
+        grid-template-columns: auto 1fr;
+    }
+
+    .state-card .text-button {
+        grid-column: 1 / -1;
+    }
+
+    .timeline {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 10px;
+    }
+
+    .timeline__route {
+        min-width: 70px;
+    }
+
+    .timeline__route i,
+    .timeline__route > span,
+    .timeline__route small {
+        display: none;
+    }
+
+    .timeline__route .material-symbols-rounded {
+        font-size: 28px;
+    }
+
+    .flight-card__footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .flight-list-item {
+        grid-template-columns: auto 1fr auto;
+    }
+
+    .flight-list-item > div:nth-of-type(3),
+    .flight-list-item > div:nth-of-type(4) {
+        display: none;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+
+    .pagination > span {
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+}

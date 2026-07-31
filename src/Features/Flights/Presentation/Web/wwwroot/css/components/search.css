@@ -1,0 +1,88 @@
+.search-card {
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--outline-muted);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.search-card label {
+    display: block;
+    margin: 0 0 9px 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.search-card > small {
+    display: block;
+    margin: 8px 0 0 4px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.search-field {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+.search-field__icon {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    color: var(--secondary);
+    transform: translateY(-50%);
+}
+
+.search-field input {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 16px 0 48px;
+    color: var(--text);
+    background: var(--background);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--motion), box-shadow var(--motion);
+}
+
+.search-field input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--focus-halo);
+    outline: 0;
+}
+
+.primary-button,
+.text-button,
+
+.quick-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 34px;
+    padding: 0 12px;
+    color: var(--secondary);
+    background: var(--surface-variant);
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.filter-chip:hover {
+    color: var(--on-primary-container);
+    background: var(--primary-container);
+    transform: translateY(-1px);
+}
+
+.filter-chip .material-symbols-rounded {
+    font-size: 16px;
+}

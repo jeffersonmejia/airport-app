@@ -1,0 +1,9 @@
+/* Punto de entrada visual de la feature Flights. */
+@import url("./pages/flights-page.css");
+@import url("./components/search.css");
+@import url("./components/flight-list.css");
+@import url("./components/surfaces.css");
+@import url("./states/feedback.css");
+@import url("./components/flight-card.css");
+@import url("./motion/animations.css");
+@import url("./responsive/flights.css");
