@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\Application\Airport.Features.Bookings.Application.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Airport.Features.Bookings.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

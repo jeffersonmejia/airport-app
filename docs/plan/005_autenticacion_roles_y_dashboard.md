@@ -121,13 +121,13 @@ responsable únicamente de identidad y autorización, no de consultar estadísti
 - [x] Implementar `Login` sin comparar ni almacenar contraseñas en texto plano.
 - [x] Emitir claims de rol y añadir `Admin` cuando el departamento sea `Management`.
 - [ ] Implementar `Logout` y `GetCurrentUser`.
-- [ ] Definir y probar políticas de autorización por rol.
-- [ ] Adaptar navegación y Home a los claims del usuario.
-- [ ] Crear `GetDatabaseSummary` protegido exclusivamente para `Admin`.
-- [ ] Implementar conteos eficientes, caché y fecha de actualización.
-- [ ] Presentar total, gráfico, leyenda y etiquetas funcionales accesibles.
-- [ ] Probar que los demás roles no accedan al resumen administrativo.
-- [ ] Documentar el criterio usado si los totales son aproximados.
+- [x] Definir y probar políticas de autorización por rol.
+- [x] Adaptar navegación y Home a los claims del usuario.
+- [x] Crear `GetDatabaseSummary` protegido exclusivamente para `Admin`.
+- [x] Implementar conteos eficientes, caché y fecha de actualización.
+- [x] Presentar total, gráfico, leyenda y etiquetas funcionales accesibles.
+- [x] Probar que los demás roles no accedan al resumen administrativo.
+- [x] Documentar el criterio usado si los totales son aproximados.
 
 ## Criterios de aceptación
 

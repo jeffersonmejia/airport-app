@@ -1,4 +1,7 @@
+@using Airport.Features.Auth.Presentation.Web.Services
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthSession AuthSession
 
 <div class="app-shell">
     <aside class="side-nav @(menuOpen ? "side-nav--open" : null)" aria-label="Navegación principal">
@@ -32,7 +35,16 @@
                 <span>Explora tu próximo vuelo</span>
                 <small>Información clara, sin turbulencias</small>
             </div>
-            <button class="avatar" type="button" aria-label="Perfil de usuario">JM</button>
+            <a class="avatar" href="/login" aria-label="@(AuthSession.IsAuthenticated ? "Ver sesión de usuario" : "Iniciar sesión")">
+                @if (AuthSession.IsAuthenticated)
+                {
+                    @Initials
+                }
+                else
+                {
+                    <span class="material-symbols-rounded" aria-hidden="true">person</span>
+                }
+            </a>
         </header>
 
         <main class="page-content">
@@ -44,5 +56,25 @@
 @code {
     private bool menuOpen;
 
+    private string Initials
+    {
+        get
+        {
+            var username = AuthSession.Current?.Username ?? string.Empty;
+            return username.Length switch
+            {
+                0 => "?",
+                1 => username.ToUpperInvariant(),
+                _ => username[..2].ToUpperInvariant()
+            };
+        }
+    }
+
+    protected override void OnInitialized() => AuthSession.Changed += OnSessionChanged;
+
     private void ToggleMenu() => menuOpen = !menuOpen;
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => AuthSession.Changed -= OnSessionChanged;
 }

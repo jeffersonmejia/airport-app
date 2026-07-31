@@ -1,0 +1,142 @@
+@page "/login"
+@using Airport.Features.Auth.Presentation.Web.Models
+@using Airport.Features.Auth.Presentation.Web.Services
+@inject AuthClient AuthClient
+@inject AuthSession AuthSession
+
+<PageTitle>Iniciar sesión | Airport</PageTitle>
+
+<section class="login-page" aria-labelledby="login-title">
+    <div class="login-card">
+        <div class="login-card__intro">
+            <span class="login-card__icon material-symbols-rounded" aria-hidden="true">shield_person</span>
+            <span class="eyebrow">Acceso de empleados</span>
+            <h1 id="login-title">Bienvenido de vuelta</h1>
+            <p>Ingresa con las credenciales asignadas a tu departamento.</p>
+        </div>
+
+        @if (AuthSession.IsAuthenticated)
+        {
+            <div class="login-success" role="status">
+                <span class="material-symbols-rounded" aria-hidden="true">verified_user</span>
+                <div>
+                    <strong>Sesión iniciada como @AuthSession.Current!.Username</strong>
+                    <p>@string.Join(" · ", AuthSession.Current.Roles)</p>
+                </div>
+            </div>
+            <div class="login-actions">
+                @if (AuthSession.IsAdmin)
+                {
+                    <a class="primary-button" href="/admin">Ir al panel administrativo</a>
+                }
+                else if (AuthSession.IsInRole("Accounting"))
+                {
+                    <a class="primary-button" href="/bookings">Ir al módulo de reservas</a>
+                }
+                else
+                {
+                    <a class="primary-button" href="/">Ir al inicio</a>
+                }
+                <button class="text-button" type="button" @onclick="SignOut">Cerrar sesión</button>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="credentials" OnValidSubmit="LoginAsync" FormName="employee-login">
+                <DataAnnotationsValidator />
+
+                <div class="form-field">
+                    <label for="username">Usuario</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">person</span>
+                        <InputText id="username" @bind-Value="credentials.Username"
+                                   autocomplete="username" disabled="@isLoading" />
+                    </div>
+                    <ValidationMessage For="() => credentials.Username" />
+                </div>
+
+                <div class="form-field">
+                    <label for="password">Contraseña</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+                        <InputText id="password" type="password" @bind-Value="credentials.Password"
+                                   autocomplete="current-password" disabled="@isLoading" />
+                    </div>
+                    <ValidationMessage For="() => credentials.Password" />
+                </div>
+
+                @if (errorMessage is not null)
+                {
+                    <div class="login-error" role="alert">
+                        <span class="material-symbols-rounded" aria-hidden="true">error</span>
+                        <span>@errorMessage</span>
+                    </div>
+                }
+
+                <button class="primary-button login-submit" type="submit" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="material-symbols-rounded login-spinner" aria-hidden="true">progress_activity</span>
+                        <span>Ingresando…</span>
+                    }
+                    else
+                    {
+                        <span>Iniciar sesión</span>
+                        <span class="material-symbols-rounded" aria-hidden="true">login</span>
+                    }
+                </button>
+            </EditForm>
+        }
+    </div>
+
+    <aside class="login-help" aria-label="Ayuda para iniciar sesión">
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        <div>
+            <strong>¿Necesitas una cuenta de prueba?</strong>
+            <p>Las credenciales por rol están documentadas en <code>docs/users.md</code>.</p>
+        </div>
+    </aside>
+</section>
+
+@code {
+    private readonly LoginCredentials credentials = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task LoginAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await AuthClient.LoginAsync(credentials, CancellationToken.None);
+
+            if (result is null)
+            {
+                errorMessage = "El usuario o la contraseña no son correctos.";
+                return;
+            }
+
+            AuthSession.SignIn(result);
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No pudimos conectar con el servicio de autenticación.";
+        }
+        catch (InvalidOperationException)
+        {
+            errorMessage = "La respuesta del servicio de autenticación no es válida.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SignOut()
+    {
+        AuthSession.SignOut();
+        credentials.Password = string.Empty;
+    }
+}

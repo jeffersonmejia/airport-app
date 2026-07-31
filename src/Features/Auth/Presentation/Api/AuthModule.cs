@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Airport.Features.Auth.Application.Ports;
 using Airport.Features.Auth.Application.Login;
@@ -45,7 +46,7 @@ public static class AuthModule
                     RequireExpirationTime = true,
                     RequireSignedTokens = true,
                     NameClaimType = JwtRegisteredClaimNames.UniqueName,
-                    RoleClaimType = "role",
+                    RoleClaimType = ClaimTypes.Role,
                     ClockSkew = TimeSpan.FromSeconds(jwt.ClockSkewSeconds)
                 };
                 options.Events = new JwtBearerEvents
@@ -54,7 +55,13 @@ public static class AuthModule
                 };
             });
         services.AddAuthorizationBuilder()
-            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin));
+            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin))
+            .AddPolicy("BookingsRead", policy => policy.RequireRole(
+                ApplicationRoles.Accounting, ApplicationRoles.Admin))
+            .AddPolicy("BookingsWrite", policy => policy.RequireRole(
+                ApplicationRoles.Accounting, ApplicationRoles.Admin))
+            .AddPolicy("BookingsCancel", policy => policy.RequireRole(
+                ApplicationRoles.Accounting, ApplicationRoles.Admin));
 
         return services;
     }

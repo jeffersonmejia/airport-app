@@ -1,7 +1,16 @@
-﻿@using Airport.Features.Flights.Presentation.Web
+﻿@using Airport.Features.Administration.Presentation.Web
+@using Airport.Features.Auth.Presentation.Web
+@using Airport.Features.Bookings.Presentation.Web
+@using Airport.Features.Flights.Presentation.Web
 
 <Router AppAssembly="@typeof(App).Assembly"
-        AdditionalAssemblies="new[] { typeof(FlightsPresentationAssembly).Assembly }"
+        AdditionalAssemblies="new[]
+        {
+            typeof(FlightsPresentationAssembly).Assembly,
+            typeof(AuthPresentationAssembly).Assembly,
+            typeof(AdministrationPresentationAssembly).Assembly,
+            typeof(BookingsPresentationAssembly).Assembly
+        }"
         NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>

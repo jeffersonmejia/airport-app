@@ -3,6 +3,10 @@ using Airport.Features.Auth.Application.Ports;
 using Airport.Features.Auth.Domain;
 using Airport.Features.Auth.Infrastructure.Security;
 using Airport.Features.Auth.Presentation.Web;
+using Airport.Features.Bookings.Application.SearchBookings;
+using Airport.Features.Bookings.Domain;
+using Airport.Features.Bookings.Infrastructure.Persistence;
+using Airport.Features.Bookings.Presentation.Web;
 using Airport.Features.Flights.Application.GetFlight;
 using Airport.Features.Flights.Domain;
 using Airport.Features.Flights.Infrastructure.Persistence;
@@ -93,6 +97,23 @@ public sealed class DependencyRulesTests
         var references = ReferencesOf(typeof(AuthPresentationAssembly).Assembly);
 
         Assert.DoesNotContain(references, IsInfrastructure);
+    }
+
+    [Fact]
+    public void BookingsRespectsLayerBoundaries()
+    {
+        var domainReferences = ReferencesOf(typeof(Booking).Assembly);
+        var applicationReferences = ReferencesOf(typeof(SearchBookingsHandler).Assembly);
+        var infrastructureReferences = ReferencesOf(typeof(BookingsDbContext).Assembly);
+        var webReferences = ReferencesOf(typeof(BookingsPresentationAssembly).Assembly);
+
+        Assert.DoesNotContain(domainReferences, IsApplication);
+        Assert.DoesNotContain(domainReferences, IsInfrastructure);
+        Assert.DoesNotContain(domainReferences, IsPresentation);
+        Assert.DoesNotContain(applicationReferences, IsInfrastructure);
+        Assert.DoesNotContain(applicationReferences, IsPresentation);
+        Assert.DoesNotContain(infrastructureReferences, IsPresentation);
+        Assert.DoesNotContain(webReferences, IsInfrastructure);
     }
 
     private static string[] ReferencesOf(Assembly assembly) =>

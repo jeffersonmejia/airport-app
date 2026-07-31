@@ -1,0 +1,167 @@
+@page "/admin"
+@using Airport.Features.Administration.Presentation.Web.Models
+@using Airport.Features.Administration.Presentation.Web.Services
+@inject AdministrationClient AdministrationClient
+
+<PageTitle>Panel administrativo | Airport</PageTitle>
+
+<section class="admin-dashboard" aria-labelledby="admin-title">
+    <header class="admin-hero">
+        <div>
+            <span class="eyebrow">
+                <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
+                Acceso administrativo
+            </span>
+            <h1 id="admin-title">Resumen general del aeropuerto</h1>
+            <p>Vista consolidada de los registros disponibles en la plataforma.</p>
+        </div>
+        @if (summary is not null)
+        {
+            <div class="admin-total">
+                <small>Total aproximado</small>
+                <strong>@summary.Total.ToString("N0")</strong>
+                <span>registros</span>
+            </div>
+        }
+    </header>
+
+    @if (isLoading)
+    {
+        <div class="admin-state" aria-live="polite">
+            <span class="material-symbols-rounded admin-spin" aria-hidden="true">progress_activity</span>
+            <p>Preparando el resumen administrativo…</p>
+        </div>
+    }
+    else if (errorMessage is not null)
+    {
+        <div class="admin-state admin-state--error" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+            <div>
+                <h2>No pudimos mostrar el panel</h2>
+                <p>@errorMessage</p>
+            </div>
+            <button class="text-button" type="button" @onclick="LoadAsync">Reintentar</button>
+        </div>
+    }
+    else if (summary is not null)
+    {
+        <div class="admin-grid">
+            <article class="chart-card" aria-labelledby="distribution-title">
+                <header>
+                    <div>
+                        <span class="eyebrow">Distribución</span>
+                        <h2 id="distribution-title">Registros por categoría</h2>
+                    </div>
+                    <span class="estimate-chip">Estimado</span>
+                </header>
+
+                <div class="pie-layout">
+                    <div class="pie-chart" style="@BuildPieStyle()" role="img"
+                         aria-label="Distribución aproximada de registros por categoría">
+                        <div class="pie-chart__center">
+                            <strong>@FormatCompact(summary.Total)</strong>
+                            <span>registros</span>
+                        </div>
+                    </div>
+
+                    <div class="pie-legend">
+                        @foreach (var entry in summary.Items.Select((item, index) => (item, index)))
+                        {
+                            <div class="legend-row">
+                                <span class="legend-dot" style="background:@ColorAt(entry.index)"></span>
+                                <span class="legend-label">@entry.item.Label</span>
+                                <strong>@entry.item.Count.ToString("N0")</strong>
+                                <small>@Percentage(entry.item.Count).ToString("N2")%</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <footer>
+                    <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                    Actualizado @summary.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </footer>
+            </article>
+        </div>
+    }
+</section>
+
+@code {
+    private static readonly string[] ChartColors =
+    [
+        "#e85d8e", "#7c5360", "#f29bb8", "#3a7d5d", "#f4b860", "#6f7fd6",
+        "#9b6dc6", "#4f9da6", "#d76b5e", "#82a85b", "#cf8fce", "#78909c",
+        "#f0c674", "#8d6e63"
+    ];
+
+    private DatabaseSummaryViewModel? summary;
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            summary = await AdministrationClient.GetDatabaseSummaryAsync(CancellationToken.None);
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized)
+        {
+            errorMessage = "Inicia sesión con una cuenta administrativa para continuar.";
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Forbidden)
+        {
+            errorMessage = "Tu cuenta no tiene el rol Admin.";
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No pudimos conectar con el servicio administrativo.";
+        }
+        catch (InvalidOperationException)
+        {
+            errorMessage = "El servicio devolvió un resumen no válido.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string BuildPieStyle()
+    {
+        if (summary is null || summary.Total <= 0)
+        {
+            return "background:var(--surface-variant)";
+        }
+
+        var segments = new List<string>();
+        double start = 0;
+        var index = 0;
+
+        foreach (var item in summary.Items.Where(item => item.Count > 0))
+        {
+            var end = start + Percentage(item.Count);
+            segments.Add($"{ColorAt(index)} {start:F4}% {end:F4}%");
+            start = end;
+            index++;
+        }
+
+        return $"background:conic-gradient({string.Join(",", segments)})";
+    }
+
+    private double Percentage(long count) =>
+        summary is null || summary.Total <= 0 ? 0 : count * 100d / summary.Total;
+
+    private static string ColorAt(int index) => ChartColors[index % ChartColors.Length];
+
+    private static string FormatCompact(long value) => value switch
+    {
+        >= 1_000_000 => $"{value / 1_000_000d:0.#} M",
+        >= 1_000 => $"{value / 1_000d:0.#} mil",
+        _ => value.ToString("N0")
+    };
+}

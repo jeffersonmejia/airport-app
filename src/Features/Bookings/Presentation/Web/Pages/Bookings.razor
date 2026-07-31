@@ -1,0 +1,240 @@
+@page "/bookings"
+@using Airport.Features.Bookings.Presentation.Web.Models
+@using Airport.Features.Bookings.Presentation.Web.Services
+@inject BookingsClient BookingsClient
+
+<PageTitle>Reservas | Airport</PageTitle>
+
+<section class="bookings-page" aria-labelledby="bookings-title">
+    <header class="bookings-hero">
+        <div>
+            <span class="eyebrow">
+                <span class="material-symbols-rounded" aria-hidden="true">account_balance_wallet</span>
+                Módulo Accounting
+            </span>
+            <h1 id="bookings-title">Gestión de reservas</h1>
+            <p>Consulta y administra reservas con trazabilidad financiera.</p>
+        </div>
+        <button class="primary-button" type="button" @onclick="ToggleCreate">
+            <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            Nueva reserva
+        </button>
+    </header>
+
+    @if (showCreate)
+    {
+        <section class="booking-editor" aria-labelledby="create-title">
+            <header>
+                <div><span class="eyebrow">Crear</span><h2 id="create-title">Nueva reserva</h2></div>
+                <button class="icon-button" type="button" aria-label="Cerrar" @onclick="ToggleCreate">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </header>
+            <div class="booking-form-grid">
+                <label>Vuelo <InputNumber @bind-Value="createInput.FlightId" /></label>
+                <label>Pasajero <InputNumber @bind-Value="createInput.PassengerId" /></label>
+                <label>Asiento <InputText @bind-Value="createInput.Seat" maxlength="4" /></label>
+                <label>Precio <InputNumber @bind-Value="createInput.Price" step="0.01" /></label>
+            </div>
+            <p class="booking-hint">Sólo se pueden crear reservas para vuelos futuros.</p>
+            <button class="primary-button" type="button" disabled="@isMutating" @onclick="CreateAsync">
+                Guardar reserva
+            </button>
+        </section>
+    }
+
+    <section class="booking-search" aria-label="Filtros de reservas">
+        <label>Reserva <InputNumber @bind-Value="bookingIdFilter" placeholder="ID" /></label>
+        <label>Vuelo <InputNumber @bind-Value="flightIdFilter" placeholder="ID" /></label>
+        <label>Pasajero <InputNumber @bind-Value="passengerIdFilter" placeholder="ID" /></label>
+        <button class="primary-button" type="button" @onclick="ApplyFiltersAsync">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            Buscar
+        </button>
+        <button class="text-button" type="button" @onclick="ClearFiltersAsync">Limpiar</button>
+    </section>
+
+    @if (message is not null)
+    {
+        <div class="booking-message @(messageIsError ? "booking-message--error" : null)" role="status">
+            <span class="material-symbols-rounded" aria-hidden="true">
+                @(messageIsError ? "error" : "check_circle")
+            </span>
+            @message
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="bookings-state"><span class="material-symbols-rounded booking-spin">progress_activity</span> Cargando reservas…</div>
+    }
+    else if (pageResult is null)
+    {
+        <div class="bookings-state">Inicia sesión con el rol Accounting o Admin.</div>
+    }
+    else if (pageResult.Items.Count == 0)
+    {
+        <div class="bookings-state">No encontramos reservas con esos filtros.</div>
+    }
+    else
+    {
+        <div class="booking-table-shell">
+            <table class="booking-table">
+                <thead><tr><th>Reserva</th><th>Vuelo</th><th>Pasajero</th><th>Asiento</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    @foreach (var booking in pageResult.Items)
+                    {
+                        <tr>
+                            <td><strong>#@booking.BookingId</strong></td>
+                            <td>@booking.FlightId</td>
+                            <td>@booking.PassengerId</td>
+                            <td>@(booking.Seat ?? "Sin asignar")</td>
+                            <td>@booking.Price.ToString("C2")</td>
+                            <td>
+                                <span class="booking-status @(booking.IsCancelled ? "booking-status--cancelled" : booking.CanModify ? "booking-status--active" : "")">
+                                    @(booking.IsCancelled ? "Cancelada" : booking.CanModify ? "Activa" : "Histórica")
+                                </span>
+                            </td>
+                            <td class="booking-actions">
+                                <button class="icon-button" type="button" disabled="@(!booking.CanModify)"
+                                        title="@(booking.CanModify ? "Editar" : "Los vuelos históricos son de sólo lectura")"
+                                        aria-label="Editar reserva @booking.BookingId" @onclick="() => BeginEdit(booking)">
+                                    <span class="material-symbols-rounded">edit</span>
+                                </button>
+                                <button class="icon-button icon-button--danger" type="button" disabled="@(!booking.CanModify)"
+                                        title="@(booking.CanModify ? "Cancelar" : "Los vuelos históricos no se pueden cancelar")"
+                                        aria-label="Cancelar reserva @booking.BookingId" @onclick="() => BeginCancel(booking)">
+                                    <span class="material-symbols-rounded">cancel</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <nav class="pagination" aria-label="Paginación de reservas">
+            <button class="page-button" type="button" disabled="@(currentPage <= 1)" @onclick="PreviousPageAsync">Anterior</button>
+            <span>Página <strong>@currentPage</strong> · 5 por página</span>
+            <button class="page-button" type="button" disabled="@(!pageResult.HasNextPage)" @onclick="NextPageAsync">Siguiente</button>
+        </nav>
+    }
+
+    @if (editingBooking is not null)
+    {
+        <section class="booking-editor" aria-labelledby="edit-title">
+            <header><div><span class="eyebrow">Corregir</span><h2 id="edit-title">Reserva #@editingBooking.BookingId</h2></div></header>
+            <div class="booking-form-grid booking-form-grid--compact">
+                <label>Asiento <InputText @bind-Value="updateInput.Seat" maxlength="4" /></label>
+                <label>Precio <InputNumber @bind-Value="updateInput.Price" step="0.01" /></label>
+            </div>
+            <div class="booking-editor__actions">
+                <button class="primary-button" type="button" disabled="@isMutating" @onclick="UpdateAsync">Guardar cambios</button>
+                <button class="text-button" type="button" @onclick="CloseActions">Cancelar</button>
+            </div>
+        </section>
+    }
+
+    @if (cancellingBooking is not null)
+    {
+        <section class="booking-editor booking-editor--danger" aria-labelledby="cancel-title">
+            <header><div><span class="eyebrow">Cancelación auditada</span><h2 id="cancel-title">Cancelar reserva #@cancellingBooking.BookingId</h2></div></header>
+            <label class="reason-field">Motivo <textarea @bind="cancellationReason" maxlength="250"></textarea></label>
+            <div class="booking-editor__actions">
+                <button class="danger-button" type="button" disabled="@isMutating" @onclick="CancelAsync">Confirmar cancelación</button>
+                <button class="text-button" type="button" @onclick="CloseActions">Volver</button>
+            </div>
+        </section>
+    }
+</section>
+
+@code {
+    private BookingSearchViewModel? pageResult;
+    private readonly CreateBookingInput createInput = new();
+    private readonly UpdateBookingInput updateInput = new();
+    private BookingViewModel? editingBooking;
+    private BookingViewModel? cancellingBooking;
+    private int? bookingIdFilter;
+    private int? flightIdFilter;
+    private int? passengerIdFilter;
+    private int currentPage = 1;
+    private bool isLoading;
+    private bool isMutating;
+    private bool showCreate;
+    private bool messageIsError;
+    private string? cancellationReason;
+    private string? message;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        try
+        {
+            pageResult = await BookingsClient.SearchAsync(
+                bookingIdFilter, flightIdFilter, passengerIdFilter, currentPage, CancellationToken.None);
+        }
+        catch (BookingsClientException exception)
+        {
+            SetMessage(exception.Message, true);
+            pageResult = null;
+        }
+        catch (HttpRequestException)
+        {
+            SetMessage("No pudimos conectar con el servicio de reservas.", true);
+            pageResult = null;
+        }
+        finally { isLoading = false; }
+    }
+
+    private async Task ApplyFiltersAsync() { currentPage = 1; await LoadAsync(); }
+    private async Task ClearFiltersAsync() { bookingIdFilter = flightIdFilter = passengerIdFilter = null; currentPage = 1; await LoadAsync(); }
+    private async Task PreviousPageAsync() { if (currentPage > 1) { currentPage--; await LoadAsync(); } }
+    private async Task NextPageAsync() { if (pageResult?.HasNextPage is true) { currentPage++; await LoadAsync(); } }
+    private void ToggleCreate() { showCreate = !showCreate; CloseActions(); }
+
+    private async Task CreateAsync()
+    {
+        if (createInput.FlightId is null || createInput.PassengerId is null || createInput.Price is null)
+        {
+            SetMessage("Completa vuelo, pasajero y precio.", true); return;
+        }
+        await MutateAsync(async () => { await BookingsClient.CreateAsync(createInput, CancellationToken.None); showCreate = false; }, "Reserva creada.");
+    }
+
+    private void BeginEdit(BookingViewModel booking)
+    {
+        editingBooking = booking; cancellingBooking = null;
+        updateInput.Seat = booking.Seat; updateInput.Price = booking.Price; updateInput.Version = booking.Version;
+    }
+
+    private async Task UpdateAsync()
+    {
+        if (editingBooking is null) return;
+        await MutateAsync(() => BookingsClient.UpdateAsync(editingBooking.BookingId, updateInput, CancellationToken.None), "Reserva actualizada.");
+    }
+
+    private void BeginCancel(BookingViewModel booking) { cancellingBooking = booking; editingBooking = null; cancellationReason = null; }
+
+    private async Task CancelAsync()
+    {
+        if (cancellingBooking is null || string.IsNullOrWhiteSpace(cancellationReason))
+        {
+            SetMessage("Escribe el motivo de cancelación.", true); return;
+        }
+        await MutateAsync(() => BookingsClient.CancelAsync(cancellingBooking.BookingId, cancellationReason, CancellationToken.None), "Reserva cancelada con auditoría.");
+    }
+
+    private async Task MutateAsync(Func<Task> action, string successMessage)
+    {
+        isMutating = true;
+        try { await action(); SetMessage(successMessage, false); CloseActions(); await LoadAsync(); }
+        catch (BookingsClientException exception) { SetMessage(exception.Message, true); }
+        catch (HttpRequestException) { SetMessage("No pudimos conectar con el servicio de reservas.", true); }
+        finally { isMutating = false; }
+    }
+
+    private void CloseActions() { editingBooking = null; cancellingBooking = null; }
+    private void SetMessage(string value, bool isError) { message = value; messageIsError = isError; }
+}

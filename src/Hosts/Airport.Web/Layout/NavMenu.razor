@@ -1,3 +1,7 @@
+@using Airport.Features.Auth.Presentation.Web.Services
+@implements IDisposable
+@inject AuthSession AuthSession
+
 <nav class="nav-list">
     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
         <span class="material-symbols-rounded" aria-hidden="true">flight</span>
@@ -18,4 +22,32 @@
         <span>Clima</span>
         <small>Pronto</small>
     </span>
+    @if (AuthSession.IsAdmin)
+    {
+        <NavLink class="nav-link" href="admin">
+            <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
+            <span>Administración</span>
+        </NavLink>
+    }
+    @if (AuthSession.IsAdmin || AuthSession.IsInRole("Accounting"))
+    {
+        <NavLink class="nav-link" href="bookings">
+            <span class="material-symbols-rounded" aria-hidden="true">confirmation_number</span>
+            <span>Reservas</span>
+        </NavLink>
+    }
+    <NavLink class="nav-link" href="login">
+        <span class="material-symbols-rounded" aria-hidden="true">
+            @(AuthSession.IsAuthenticated ? "account_circle" : "login")
+        </span>
+        <span>@(AuthSession.IsAuthenticated ? "Mi sesión" : "Iniciar sesión")</span>
+    </NavLink>
 </nav>
+
+@code {
+    protected override void OnInitialized() => AuthSession.Changed += OnSessionChanged;
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => AuthSession.Changed -= OnSessionChanged;
+}
