@@ -1,21 +1,5 @@
 # Preferencias de trabajo y contexto del proyecto
 
-## Inicio de un agente o chat nuevo
-
-- Todo agente nuevo, incluyendo Codex, OpenCode u otra herramienta equivalente, debe leer completamente `requirements.md`, ubicado en esta misma carpeta, antes de analizar, planificar o modificar el proyecto.
-- Esta lectura también es obligatoria al iniciar un chat nuevo, aunque el agente ya conozca parcialmente el proyecto.
-- Después debe consultar `DIAGRAMS.md` cuando necesite comprender la arquitectura, los módulos, las relaciones o los flujos del sistema.
-- Si `requirements.md` está vacío, debe trabajar a partir de la solicitud actual del usuario y del estado real del repositorio, sin inventar requisitos.
-
-## Flujo de trabajo
-
-1. Leer `requirements.md` y las instrucciones aplicables.
-2. Revisar el estado actual del repositorio y los archivos relacionados con la tarea.
-3. Implementar primero los cambios solicitados en el código.
-4. Compilar y ejecutar las pruebas seguras que correspondan.
-5. Informar qué se cambió y el resultado de las verificaciones.
-6. Si conviene reiniciar un componente, sugerirlo y esperar la autorización expresa del usuario antes de hacerlo.
-
 ## Forma de trabajo preferida
 
 - Primero se implementan los cambios solicitados en el código.
@@ -41,3 +25,7 @@
 - Se pueden compilar y ejecutar pruebas sin pedir autorización, siempre que esto no reinicie servicios ni realice cambios destructivos en la base de datos.
 - Al terminar una modificación, se deben comunicar el resultado de la compilación y las pruebas realizadas.
 - Si para verificar el cambio hace falta reiniciar algún componente, se debe sugerir el comando o la acción y esperar la autorización del usuario.
+
+## Versionamiento
+
+debes poner en agents, que se debe mandar commit semantico español, con feat: docs: ... fix, solo esos tres, ah y refactor: ... y solo si yo lo digo.
