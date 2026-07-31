@@ -1,7 +1,7 @@
 # Diagramas C4 — Airport
 
-Este documento describe la arquitectura implementada actualmente. Los diagramas usan
-la jerarquía C4 como guía y añaden vistas de apoyo cuando una relación no pertenece
+Este documento describe la arquitectura implementada actualmente.
+Los diagramas usan la jerarquía C4 como guía y añaden vistas de apoyo cuando una relación no pertenece
 estrictamente a un nivel C4.
 
 ## Criterio de documentación

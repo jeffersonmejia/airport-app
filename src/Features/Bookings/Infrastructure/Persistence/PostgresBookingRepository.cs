@@ -9,6 +9,15 @@ public sealed class PostgresBookingRepository(
     BookingsDbContext dbContext,
     TimeProvider timeProvider) : IBookingRepository
 {
+    private const string BookingEstimateSql = """
+        SELECT GREATEST(c.reltuples, 0)::bigint AS "EstimatedRows"
+        FROM pg_class AS c
+        INNER JOIN pg_namespace AS n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'airportdb'
+          AND c.relname = 'booking'
+          AND c.relkind = 'r'
+        """;
+
     public async Task<BookingPage> SearchAsync(
         int? bookingId,
         int? flightId,
@@ -22,6 +31,11 @@ public sealed class PostgresBookingRepository(
         if (flightId is not null) bookings = bookings.Where(row => row.FlightId == flightId);
         if (passengerId is not null) bookings = bookings.Where(row => row.PassengerId == passengerId);
 
+        var filtered = bookingId is not null || flightId is not null || passengerId is not null;
+        var (totalItems, totalApproximate) = filtered
+            ? (await bookings.CountAsync(cancellationToken), false)
+            : (await EstimateTotalAsync(cancellationToken), true);
+
         var pageQuery = bookings
             .OrderByDescending(booking => booking.BookingId)
             .Skip((page - 1) * pageSize)
@@ -33,7 +47,17 @@ public sealed class PostgresBookingRepository(
         return new BookingPage(
             rows.Take(pageSize).Select(ToDomain).ToArray(),
             page,
-            hasNextPage);
+            hasNextPage,
+            totalItems,
+            totalApproximate);
+    }
+
+    private async Task<int> EstimateTotalAsync(CancellationToken cancellationToken)
+    {
+        var estimate = await dbContext.Database
+            .SqlQueryRaw<BookingTableEstimate>(BookingEstimateSql)
+            .FirstOrDefaultAsync(cancellationToken);
+        return (int)Math.Min(estimate?.EstimatedRows ?? 0, int.MaxValue);
     }
 
     public async Task<Booking?> FindByIdAsync(
@@ -227,6 +251,11 @@ public sealed class PostgresBookingRepository(
         {
             SqlState: PostgresErrorCodes.UniqueViolation
         };
+
+    private sealed class BookingTableEstimate
+    {
+        public long EstimatedRows { get; init; }
+    }
 
     private sealed record BookingProjection(
         int BookingId,

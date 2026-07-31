@@ -114,8 +114,15 @@
         </div>
 
         <nav class="pagination" aria-label="Paginación de reservas">
+            <span class="result-count">
+                @(pageResult.TotalApproximate ? "≈ " : "")@pageResult.TotalItems.ToString("N0") registros
+                @if (pageResult.TotalApproximate)
+                {
+                    <small>(aprox.)</small>
+                }
+            </span>
             <button class="page-button" type="button" disabled="@(currentPage <= 1)" @onclick="PreviousPageAsync">Anterior</button>
-            <span>Página <strong>@currentPage</strong> · 5 por página</span>
+            <span>Página <strong>@currentPage</strong> de <strong>@pageResult.TotalPages</strong></span>
             <button class="page-button" type="button" disabled="@(!pageResult.HasNextPage)" @onclick="NextPageAsync">Siguiente</button>
         </nav>
     }
