@@ -79,11 +79,13 @@ flowchart LR
     end
 
     subgraph auth["Feature Auth — esqueleto separado"]
-        authPresentation["Presentation<br/>API + Razor pendientes"]
-        authApplication["Application<br/>Login / Logout / CurrentUser pendientes"]
-        authDomain["Domain<br/>Identidad, sesión y permisos pendientes"]
-        authInfrastructure["Infrastructure<br/>EF Core + seguridad pendientes"]
+        authPresentation["Presentation<br/>JWT Bearer; endpoints de usuario pendientes"]
+        authApplication["Application<br/>Puertos de token y sesión"]
+        authDomain["Domain<br/>Identidad y roles"]
+        authInfrastructure["Infrastructure<br/>JWT 15 min + sesión única por jti"]
     end
+
+    cache[("Caché en memoria<br/>256 entradas / TTL 30 s")]
 
     db[("PostgreSQL<br/>airport_exam")]
 
@@ -97,9 +99,11 @@ flowchart LR
     infrastructure -. implementa puertos .-> application
     infrastructure --> domain
     infrastructure -->|EF Core / Npgsql| db
+    infrastructure -->|Lecturas paginadas, máximo 5| cache
     authPresentation --> authApplication
     authApplication --> authDomain
     authInfrastructure -. implementará puertos .-> authApplication
+    authInfrastructure -->|Sesión activa| cache
 
     classDef adapter fill:#438dd5,color:#fff,stroke:#1d5f9a
     classDef core fill:#85bbf0,color:#111,stroke:#1d5f9a

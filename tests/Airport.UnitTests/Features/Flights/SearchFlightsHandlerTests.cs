@@ -22,12 +22,12 @@ public sealed class SearchFlightsHandlerTests
         var handler = new SearchFlightsHandler(new StubFlightReader(flights, 17));
 
         var result = await handler.HandleAsync(
-            new SearchFlightsQuery(null, 2, 8),
+            new SearchFlightsQuery(null, 2, 5),
             CancellationToken.None);
 
         Assert.Single(result.Items);
         Assert.Equal("AE007", result.Items[0].Number);
-        Assert.Equal(3, result.TotalPages);
+        Assert.Equal(4, result.TotalPages);
         Assert.Equal(17, result.TotalItems);
     }
 

@@ -56,6 +56,10 @@ durante el desarrollo inicial.
    `Presentation`; cada operación de `Application` será un vertical slice.
 8. El estilo visual seguirá Material Design con rosa pastel, composición minimalista,
    iconografía Material y animaciones suaves.
+9. Todos los listados estarán limitados a 5 elementos por página y las lecturas
+   repetidas usarán una caché en memoria acotada.
+10. Auth usará JWT Bearer de 15 minutos y permitirá una sola sesión activa por
+    usuario; la configuración de seguridad vivirá en User Secrets.
 
 ## Orden general
 

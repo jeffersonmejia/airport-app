@@ -4,5 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\Airport.Features.Auth.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Airport.SharedKernel\Airport.SharedKernel.csproj" />
   </ItemGroup>
 </Project>

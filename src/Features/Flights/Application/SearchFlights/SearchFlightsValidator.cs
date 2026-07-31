@@ -1,3 +1,5 @@
+using Airport.SharedKernel.Pagination;
+
 namespace Airport.Features.Flights.Application.SearchFlights;
 
 public sealed class SearchFlightsValidator
@@ -6,14 +8,16 @@ public sealed class SearchFlightsValidator
     {
         var errors = new Dictionary<string, string[]>();
 
-        if (query.Page < 1)
+        if (query.Page is < PaginationPolicy.DefaultPage or > PaginationPolicy.MaximumPage)
         {
-            errors[nameof(query.Page)] = ["La página debe ser mayor que cero."];
+            errors[nameof(query.Page)] =
+                [$"La página debe estar entre 1 y {PaginationPolicy.MaximumPage}."];
         }
 
-        if (query.PageSize is < 1 or > 50)
+        if (query.PageSize is < 1 or > PaginationPolicy.PageSize)
         {
-            errors[nameof(query.PageSize)] = ["El tamaño de página debe estar entre 1 y 50."];
+            errors[nameof(query.PageSize)] =
+                [$"El tamaño de página debe estar entre 1 y {PaginationPolicy.PageSize}."];
         }
 
         if (query.Number?.Length > 8)

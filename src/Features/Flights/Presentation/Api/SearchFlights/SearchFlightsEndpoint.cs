@@ -1,4 +1,5 @@
 using Airport.Features.Flights.Application.SearchFlights;
+using Airport.SharedKernel.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,7 +27,10 @@ public static class SearchFlightsEndpoint
         SearchFlightsHandler handler,
         CancellationToken cancellationToken)
     {
-        var query = new SearchFlightsQuery(number, page ?? 1, pageSize ?? 8);
+        var query = new SearchFlightsQuery(
+            number,
+            page ?? PaginationPolicy.DefaultPage,
+            pageSize ?? PaginationPolicy.PageSize);
         var errors = validator.Validate(query);
 
         if (errors.Count > 0)

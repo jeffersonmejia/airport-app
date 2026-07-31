@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <ProjectReference Include="..\..\Application\Airport.Features.Auth.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Airport.Features.Auth.Infrastructure.csproj" />
   </ItemGroup>

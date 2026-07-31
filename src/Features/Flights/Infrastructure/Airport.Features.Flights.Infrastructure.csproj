@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Airport.Features.Flights.Application.csproj" />
     <ProjectReference Include="..\Domain\Airport.Features.Flights.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Airport.SharedKernel\Airport.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />

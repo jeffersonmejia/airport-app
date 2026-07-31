@@ -17,5 +17,10 @@
     <ProjectReference Include="..\..\src\Features\Flights\Infrastructure\Airport.Features.Flights.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Features\Flights\Presentation\Api\Airport.Features.Flights.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\src\Features\Flights\Presentation\Web\Airport.Features.Flights.Presentation.Web.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Domain\Airport.Features.Auth.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Application\Airport.Features.Auth.Application.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Infrastructure\Airport.Features.Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Presentation\Api\Airport.Features.Auth.Presentation.Api.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Presentation\Web\Airport.Features.Auth.Presentation.Web.csproj" />
   </ItemGroup>
 </Project>

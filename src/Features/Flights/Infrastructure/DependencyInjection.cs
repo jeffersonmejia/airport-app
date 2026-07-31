@@ -13,7 +13,8 @@ public static class DependencyInjection
     {
         services.AddDbContextPool<FlightsDbContext>(options =>
             options.UseNpgsql(connectionString));
-        services.AddScoped<IFlightReader, PostgresFlightReader>();
+        services.AddScoped<PostgresFlightReader>();
+        services.AddScoped<IFlightReader, CachedFlightReader>();
 
         return services;
     }

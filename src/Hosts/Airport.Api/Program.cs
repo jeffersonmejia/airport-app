@@ -1,3 +1,5 @@
+using Airport.Caching;
+using Airport.Features.Auth.Presentation.Api;
 using Airport.Features.Flights.Presentation.Api;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,8 @@ var connectionString = builder.Configuration.GetConnectionString("AirportDb")
         "Falta el secret ConnectionStrings:AirportDb. Configúralo con dotnet user-secrets.");
 
 builder.Services.AddOpenApi();
+builder.Services.AddAirportCaching();
+builder.Services.AddAuthModule(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AirportWeb", policy =>
@@ -25,6 +29,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AirportWeb");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGet("/", () => Results.Ok(new
 {

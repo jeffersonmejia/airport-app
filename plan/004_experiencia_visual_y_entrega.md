@@ -85,6 +85,7 @@ familias outline, filled y rounded sin una regla de estado explícita.
 - [x] Diseñar estados de loading, empty, error y success.
 - [x] Construir la búsqueda y detalle de vuelo como primer slice visual.
 - [x] Añadir listado paginado de vuelos con estados de carga, vacío y error.
+- [x] Limitar cada página visual a un máximo de 5 resultados.
 - [x] Conectar el slice con Airport.Api usando un cliente HTTP y contrato explícito.
 - [x] Incorporar estructura semántica, nombres accesibles, foco visible y soporte para
       `prefers-reduced-motion`.

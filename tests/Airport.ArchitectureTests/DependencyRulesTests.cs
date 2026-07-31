@@ -1,4 +1,8 @@
 using System.Reflection;
+using Airport.Features.Auth.Application.Security;
+using Airport.Features.Auth.Domain;
+using Airport.Features.Auth.Infrastructure.Security;
+using Airport.Features.Auth.Presentation.Web;
 using Airport.Features.Flights.Application.GetFlight;
 using Airport.Features.Flights.Domain;
 using Airport.Features.Flights.Infrastructure.Persistence;
@@ -54,6 +58,41 @@ public sealed class DependencyRulesTests
         var references = ReferencesOf(typeof(FlightsModule).Assembly);
 
         Assert.Contains(references, IsInfrastructure);
+    }
+
+    [Fact]
+    public void AuthDomain_DoesNotReferenceOuterLayers()
+    {
+        var references = ReferencesOf(typeof(AuthIdentity).Assembly);
+
+        Assert.DoesNotContain(references, IsApplication);
+        Assert.DoesNotContain(references, IsInfrastructure);
+        Assert.DoesNotContain(references, IsPresentation);
+    }
+
+    [Fact]
+    public void AuthApplication_DoesNotReferenceSecurityAdapters()
+    {
+        var references = ReferencesOf(typeof(TokenLifetimePolicy).Assembly);
+
+        Assert.DoesNotContain(references, IsInfrastructure);
+        Assert.DoesNotContain(references, IsPresentation);
+    }
+
+    [Fact]
+    public void AuthInfrastructure_DoesNotReferencePresentation()
+    {
+        var references = ReferencesOf(typeof(JwtOptions).Assembly);
+
+        Assert.DoesNotContain(references, IsPresentation);
+    }
+
+    [Fact]
+    public void AuthWebPresentation_DoesNotReferenceInfrastructure()
+    {
+        var references = ReferencesOf(typeof(AuthPresentationAssembly).Assembly);
+
+        Assert.DoesNotContain(references, IsInfrastructure);
     }
 
     private static string[] ReferencesOf(Assembly assembly) =>

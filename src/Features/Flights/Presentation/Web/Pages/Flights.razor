@@ -2,6 +2,7 @@
 @page "/flights"
 @using Airport.Features.Flights.Presentation.Web.Models
 @using Airport.Features.Flights.Presentation.Web.Services
+@using Airport.SharedKernel.Pagination
 @inject FlightsClient FlightsClient
 
 <PageTitle>Vuelos | Airport</PageTitle>
@@ -146,7 +147,7 @@
 </section>
 
 @code {
-    private const int PageSize = 8;
+    private const int PageSize = PaginationPolicy.PageSize;
     private int? currentFlightId;
     private FlightViewModel? flight;
     private FlightSearchResultViewModel? flightPage;

@@ -1,7 +1,8 @@
 # Feature Auth — esqueleto
 
-Auth es una feature independiente. Por ahora sólo define sus fronteras; no contiene
-autenticación funcional ni se registra en los hosts.
+Auth es una feature independiente. Ya configura JWT Bearer, emisión de access tokens
+y una sola sesión activa por usuario. Login y lectura de credenciales siguen como
+esqueleto.
 
 Slices previstos:
 
@@ -9,10 +10,9 @@ Slices previstos:
 - `Logout`: invalidar la sesión activa cuando el mecanismo elegido lo permita.
 - `GetCurrentUser`: devolver la identidad autenticada y sus permisos.
 
-Antes de implementarlos se debe decidir si el examen exige cookies o JWT, la política
-de roles y el tratamiento del campo legado `airportdb.employee.password`. La clave no
-se comparará ni almacenará en texto plano. Auth será responsable de las credenciales;
-Employees conservará la información laboral y personal.
+Se usarán access tokens de 15 minutos, sin refresh token por ahora. Antes de Login se
+deben definir roles y el tratamiento seguro de `airportdb.employee.password`. La clave
+no se comparará ni almacenará en texto plano.
 
 Reglas de dependencia:
 

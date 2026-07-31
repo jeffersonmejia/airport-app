@@ -27,6 +27,14 @@ Cada feature será un módulo vertical autónomo y contendrá:
 | Proveedor PostgreSQL | Npgsql Entity Framework Core Provider |
 | Base de datos | PostgreSQL 18 nativo |
 
+Políticas transversales obligatorias:
+
+- Máximo 5 elementos en cualquier página.
+- Caché en memoria para lecturas: TTL de 30 segundos y máximo 256 entradas.
+- JWT Bearer con access token de 15 minutos y clock skew de 30 segundos.
+- Una sola sesión activa por usuario, validada mediante `sub` y `jti`.
+- Parámetros JWT y clave de firma almacenados con .NET User Secrets.
+
 EF Core se utilizará dentro de `Infrastructure` para:
 
 - Definir el `DbContext` de la aplicación.
@@ -61,7 +69,8 @@ src/
     Airport.Web/                              # Host Razor/Blazor y shell visual
 
   BuildingBlocks/
-    Airport.SharedKernel/                     # Se crea sólo al existir una abstracción real
+    Airport.SharedKernel/                     # Políticas de paginación y caché
+    Airport.Caching/                          # Adaptador IMemoryCache limitado
 
   Features/
     Auth/                                      # Esqueleto; todavía no se registra
@@ -193,9 +202,9 @@ Reglas obligatorias:
 
 ## Feature Auth
 
-Auth se mantiene como esqueleto hasta definir los requisitos concretos del examen.
-Tiene proyectos independientes para Domain, Application, Infrastructure,
-Presentation/Api y Presentation/Web, pero todavía no se registra en los hosts.
+Auth conserva como esqueleto los casos de uso de usuario, pero ya tiene emisión y
+validación JWT y registro de una sola sesión activa. Tiene proyectos independientes
+para Domain, Application, Infrastructure, Presentation/Api y Presentation/Web.
 
 Slices previstos:
 
@@ -203,8 +212,9 @@ Slices previstos:
 - `Logout`.
 - `GetCurrentUser`.
 
-Antes de implementar comportamiento se decidirán cookies o JWT, duración de sesión,
-roles, protección CSRF y política de bloqueo. El campo legado
+Se eligió JWT Bearer con access tokens de 15 minutos, sin refresh token por ahora. Un
+nuevo `jti` reemplaza la sesión activa e invalida el token anterior. Antes de Login se
+decidirán roles y política de bloqueo. El campo legado
 `airportdb.employee.password` no se tratará como contraseña segura ni se comparará en
 texto plano. Auth será responsable de credenciales e identidad; Employees será
 responsable de información laboral y personal.
@@ -262,12 +272,16 @@ pertenecen a Airlines.
 - [x] Crear registros públicos separados para Presentation/Api y Presentation/Web.
 - [x] Implementar búsqueda paginada con proyección, `AsNoTracking` y cancelación.
 - [x] Incorporar listado y navegación de páginas en la presentación Razor.
+- [x] Limitar globalmente todas las páginas a 5 elementos mediante SharedKernel.
+- [x] Añadir caché limitada y aplicar un decorador de lectura a Flights.
 - [x] Retirar los proyectos globales `Airport.Core` y `Airport.Infrastructure`.
 - [x] Reubicar las pruebas unitarias bajo `Features/Flights` sin ejecutarlas.
 - [x] Crear el esqueleto independiente de Auth con las cinco fronteras de proyecto.
 - [x] Documentar los slices futuros y decisiones de seguridad pendientes de Auth.
-- [x] No crear SharedKernel todavía: no existe una abstracción compartida real y se
-      evita introducir acoplamiento prematuro.
+- [x] Crear SharedKernel para las políticas compartidas de paginación y caché.
+- [x] Configurar JWT Bearer con issuer, audience, firma, expiración y clock skew.
+- [x] Implementar sesión única: un nuevo `jti` reemplaza al anterior.
+- [x] Guardar toda la configuración JWT en User Secrets.
 - [x] Añadir pruebas de arquitectura para las reglas de dependencia, sin ejecutarlas.
 - [x] Centralizar nullable, implicit usings y análisis estático en
       `Directory.Build.props`.
@@ -303,3 +317,5 @@ corresponder a un caso de uso solicitado por el examen.
 - La estructura puede entenderse comenzando por nombres del negocio.
 - Auth permanece aislado y sin comportamiento ficticio hasta definir sus requisitos
   de seguridad.
+- Ningún listado devuelve más de 5 elementos y las lecturas repetidas pueden usar la
+  caché compartida.

@@ -21,6 +21,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Features\Flights\Application\Airport.Features.Flights.Application.csproj" />
     <ProjectReference Include="..\..\src\Features\Flights\Domain\Airport.Features.Flights.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Application\Airport.Features.Auth.Application.csproj" />
+    <ProjectReference Include="..\..\src\Features\Auth\Infrastructure\Airport.Features.Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Airport.Caching\Airport.Caching.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Airport.SharedKernel\Airport.SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>
