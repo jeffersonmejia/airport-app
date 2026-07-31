@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Features\Flights\Domain\Airport.Features.Flights.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Application\Airport.Features.Flights.Application.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Infrastructure\Airport.Features.Flights.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Presentation\Api\Airport.Features.Flights.Presentation.Api.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Presentation\Web\Airport.Features.Flights.Presentation.Web.csproj" />
+  </ItemGroup>
+</Project>

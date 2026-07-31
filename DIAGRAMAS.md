@@ -78,6 +78,13 @@ flowchart LR
         infrastructure["Infrastructure<br/>EF Core + Npgsql + FlightsDbContext"]
     end
 
+    subgraph auth["Feature Auth — esqueleto separado"]
+        authPresentation["Presentation<br/>API + Razor pendientes"]
+        authApplication["Application<br/>Login / Logout / CurrentUser pendientes"]
+        authDomain["Domain<br/>Identidad, sesión y permisos pendientes"]
+        authInfrastructure["Infrastructure<br/>EF Core + seguridad pendientes"]
+    end
+
     db[("PostgreSQL<br/>airport_exam")]
 
     client -->|HTTPS| web
@@ -90,12 +97,15 @@ flowchart LR
     infrastructure -. implementa puertos .-> application
     infrastructure --> domain
     infrastructure -->|EF Core / Npgsql| db
+    authPresentation --> authApplication
+    authApplication --> authDomain
+    authInfrastructure -. implementará puertos .-> authApplication
 
     classDef adapter fill:#438dd5,color:#fff,stroke:#1d5f9a
     classDef core fill:#85bbf0,color:#111,stroke:#1d5f9a
     classDef db fill:#438dd5,color:#fff,stroke:#1d5f9a
-    class web,middleware,di,presentation,infrastructure adapter
-    class application,domain core
+    class web,middleware,di,presentation,infrastructure,authPresentation,authInfrastructure adapter
+    class application,domain,authApplication,authDomain core
     class db db
 ```
 

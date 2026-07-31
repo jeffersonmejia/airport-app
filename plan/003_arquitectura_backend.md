@@ -64,6 +64,22 @@ src/
     Airport.SharedKernel/                     # Se crea sólo al existir una abstracción real
 
   Features/
+    Auth/                                      # Esqueleto; todavía no se registra
+      Domain/
+        Airport.Features.Auth.Domain.csproj
+      Application/
+        Airport.Features.Auth.Application.csproj
+        Login/                                 # Slice futuro
+        Logout/                                # Slice futuro
+        GetCurrentUser/                        # Slice futuro
+      Infrastructure/
+        Airport.Features.Auth.Infrastructure.csproj
+      Presentation/
+        Api/
+          Airport.Features.Auth.Presentation.Api.csproj
+        Web/
+          Airport.Features.Auth.Presentation.Web.csproj
+
     Flights/
       Domain/
         Airport.Features.Flights.Domain.csproj
@@ -123,6 +139,7 @@ tests/
       Bookings/
       Airports/
   Airport.ArchitectureTests/
+    DependencyRulesTests.cs
   Airport.IntegrationTests/
 ```
 
@@ -171,6 +188,26 @@ Reglas obligatorias:
 7. `Presentation/Api` expone el registro HTTP del módulo y `Presentation/Web` expone
    el registro de sus páginas, componentes y clientes.
 8. Las consultas grandes siempre usan paginación, proyección y cancelación.
+9. Auth es una feature independiente: Flights y las demás features no implementan
+   login, sesiones, autorización ni acceso directo a credenciales.
+
+## Feature Auth
+
+Auth se mantiene como esqueleto hasta definir los requisitos concretos del examen.
+Tiene proyectos independientes para Domain, Application, Infrastructure,
+Presentation/Api y Presentation/Web, pero todavía no se registra en los hosts.
+
+Slices previstos:
+
+- `Login`.
+- `Logout`.
+- `GetCurrentUser`.
+
+Antes de implementar comportamiento se decidirán cookies o JWT, duración de sesión,
+roles, protección CSRF y política de bloqueo. El campo legado
+`airportdb.employee.password` no se tratará como contraseña segura ni se comparará en
+texto plano. Auth será responsable de credenciales e identidad; Employees será
+responsable de información laboral y personal.
 
 ## Vertical slice dentro de una feature
 
@@ -196,6 +233,7 @@ de la misma feature. Ninguna de las dos presentaciones contiene reglas de domini
 
 | Feature | Tablas |
 |---|---|
+| Auth | Proyección de credenciales de `employee`; diseño definitivo pendiente |
 | Flights | `flight`, `flight_log`, `flightschedule` |
 | Bookings | `booking` |
 | Passengers | `passenger`, `passengerdetails` |
@@ -226,8 +264,13 @@ pertenecen a Airlines.
 - [x] Incorporar listado y navegación de páginas en la presentación Razor.
 - [x] Retirar los proyectos globales `Airport.Core` y `Airport.Infrastructure`.
 - [x] Reubicar las pruebas unitarias bajo `Features/Flights` sin ejecutarlas.
-- [ ] Crear SharedKernel cuando aparezca una abstracción compartida real.
-- [ ] Añadir pruebas de arquitectura para las reglas de dependencia.
+- [x] Crear el esqueleto independiente de Auth con las cinco fronteras de proyecto.
+- [x] Documentar los slices futuros y decisiones de seguridad pendientes de Auth.
+- [x] No crear SharedKernel todavía: no existe una abstracción compartida real y se
+      evita introducir acoplamiento prematuro.
+- [x] Añadir pruebas de arquitectura para las reglas de dependencia, sin ejecutarlas.
+- [x] Centralizar nullable, implicit usings y análisis estático en
+      `Directory.Build.props`.
 - [ ] Restaurar paquetes, compilar y ejecutar pruebas cuando se autorice.
 
 Esta reorganización no modificó la etapa 002 ni utilizó migraciones para cargar el
@@ -258,3 +301,5 @@ corresponder a un caso de uso solicitado por el examen.
 - Razor sólo se conoce dentro de Presentation y el host Web.
 - Las features no se acoplan mediante sus detalles internos.
 - La estructura puede entenderse comenzando por nombres del negocio.
+- Auth permanece aislado y sin comportamiento ficticio hasta definir sus requisitos
+  de seguridad.

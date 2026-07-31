@@ -1,0 +1,70 @@
+using System.Reflection;
+using Airport.Features.Flights.Application.GetFlight;
+using Airport.Features.Flights.Domain;
+using Airport.Features.Flights.Infrastructure.Persistence;
+using Airport.Features.Flights.Presentation.Api;
+using Airport.Features.Flights.Presentation.Web;
+
+namespace Airport.ArchitectureTests;
+
+public sealed class DependencyRulesTests
+{
+    [Fact]
+    public void Domain_DoesNotReferenceOuterLayers()
+    {
+        var references = ReferencesOf(typeof(Flight).Assembly);
+
+        Assert.DoesNotContain(references, IsApplication);
+        Assert.DoesNotContain(references, IsInfrastructure);
+        Assert.DoesNotContain(references, IsPresentation);
+        Assert.DoesNotContain(references, name => name.StartsWith("Microsoft.EntityFrameworkCore"));
+        Assert.DoesNotContain(references, name => name.StartsWith("Npgsql"));
+    }
+
+    [Fact]
+    public void Application_DoesNotReferenceAdapters()
+    {
+        var references = ReferencesOf(typeof(GetFlightHandler).Assembly);
+
+        Assert.DoesNotContain(references, IsInfrastructure);
+        Assert.DoesNotContain(references, IsPresentation);
+        Assert.DoesNotContain(references, name => name.StartsWith("Microsoft.EntityFrameworkCore"));
+        Assert.DoesNotContain(references, name => name.StartsWith("Npgsql"));
+    }
+
+    [Fact]
+    public void Infrastructure_DoesNotReferencePresentation()
+    {
+        var references = ReferencesOf(typeof(FlightsDbContext).Assembly);
+
+        Assert.DoesNotContain(references, IsPresentation);
+    }
+
+    [Fact]
+    public void WebPresentation_DoesNotReferenceInfrastructure()
+    {
+        var references = ReferencesOf(typeof(FlightsPresentationAssembly).Assembly);
+
+        Assert.DoesNotContain(references, IsInfrastructure);
+    }
+
+    [Fact]
+    public void ApiPresentation_IsTheOnlyPresentationAllowedToComposeInfrastructure()
+    {
+        var references = ReferencesOf(typeof(FlightsModule).Assembly);
+
+        Assert.Contains(references, IsInfrastructure);
+    }
+
+    private static string[] ReferencesOf(Assembly assembly) =>
+        assembly.GetReferencedAssemblies().Select(reference => reference.Name ?? string.Empty).ToArray();
+
+    private static bool IsApplication(string name) =>
+        name.Contains(".Application", StringComparison.Ordinal);
+
+    private static bool IsInfrastructure(string name) =>
+        name.Contains(".Infrastructure", StringComparison.Ordinal);
+
+    private static bool IsPresentation(string name) =>
+        name.Contains(".Presentation", StringComparison.Ordinal);
+}
