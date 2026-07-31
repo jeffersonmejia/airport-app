@@ -40,7 +40,7 @@ durante el desarrollo inicial.
 
 1. Se preferirá PostgreSQL 18 nativo porque el dump fue generado con la versión
    18.4. No se hará la carga definitiva en PostgreSQL 17 sin validar compatibilidad.
-2. La base se llamará `airport_exam` y conservará el esquema `airportdb`.
+2. La base se llamará `aereopuerto_db` y conservará el esquema `airportdb`.
 3. La restauración se ejecutará con el usuario administrador `postgres`; la clave
    indicada para el entorno local es `postgres`.
 4. El usuario ejecutará personalmente la creación y restauración siguiendo

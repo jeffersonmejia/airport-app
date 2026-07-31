@@ -12,7 +12,7 @@ Datos acordados para la restauración local:
 |---|---|
 | Host | `localhost` |
 | Puerto | `5432` |
-| Base | `airport_exam` |
+| Base | `aereopuerto_db` |
 | Esquema importado | `airportdb` |
 | Usuario | `postgres` |
 | Contraseña | `postgres` |
@@ -26,7 +26,7 @@ se publique en Git.
 
 - [ ] Confirmar que PostgreSQL 18 esté instalado como servicio nativo.
 - [ ] Confirmar que el servicio escuche en `localhost:5432`.
-- [ ] Crear una base vacía llamada `airport_exam`.
+- [ ] Crear una base vacía llamada `aereopuerto_db`.
 - [ ] Verificar que no exista información previa que deba conservarse.
 - [ ] Mantener `aeropuerto-db.sql` en la raíz del repositorio; `.gitignore` evita que
       sus 2 GiB entren en Git.
@@ -76,7 +76,7 @@ no eliminar otra base por error.
 El rol `postgres` se utilizará para restauración y administración local. Antes de
 conectar la aplicación de forma definitiva, se creará un rol exclusivo sin
 `SUPERUSER`, `CREATEDB`, `CREATEROLE` ni `REPLICATION`, con acceso únicamente a
-`airport_exam` y al esquema `airportdb`.
+`aereopuerto_db` y al esquema `airportdb`.
 
 ## Criterio de terminado
 
