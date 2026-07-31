@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Airport.Core\Airport.Core.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Application\Airport.Features.Flights.Application.csproj" />
+    <ProjectReference Include="..\..\src\Features\Flights\Domain\Airport.Features.Flights.Domain.csproj" />
   </ItemGroup>
 
 </Project>

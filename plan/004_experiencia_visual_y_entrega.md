@@ -84,6 +84,7 @@ familias outline, filled y rounded sin una regla de estado explícita.
 - [x] Crear el shell responsive y la navegación principal.
 - [x] Diseñar estados de loading, empty, error y success.
 - [x] Construir la búsqueda y detalle de vuelo como primer slice visual.
+- [x] Añadir listado paginado de vuelos con estados de carga, vacío y error.
 - [x] Conectar el slice con Airport.Api usando un cliente HTTP y contrato explícito.
 - [x] Incorporar estructura semántica, nombres accesibles, foco visible y soporte para
       `prefers-reduced-motion`.
@@ -91,10 +92,10 @@ familias outline, filled y rounded sin una regla de estado explícita.
 - [ ] Probar en anchos móvil, tablet y escritorio.
 - [x] Centralizar los tokens para reutilizarlos en las features posteriores.
 
-Durante la reorganización feature-first, el shell y los tokens permanecerán en el
-host `Airport.Web`. La página, formulario de búsqueda, estados y tarjeta de vuelos se
-moverán a `Features/Flights/Presentation/Web`, de modo que la presentación específica
-también pertenezca a su feature.
+El shell y los tokens permanecen en el host `Airport.Web`. La página, el formulario de
+búsqueda, los estados y la tarjeta de vuelos ya están en
+`Features/Flights/Presentation/Web`, por lo que la presentación específica pertenece
+a su feature.
 
 La implementación visual se realizó sin ejecutar restore, build, servidor local ni
 pruebas de navegador, de acuerdo con las restricciones de esta etapa.

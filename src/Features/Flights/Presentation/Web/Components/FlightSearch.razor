@@ -1,0 +1,56 @@
+<form class="search-card" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Buscar vuelo">
+    <label for="flight-id">Identificador del vuelo</label>
+    <div class="search-field">
+        <span class="material-symbols-rounded search-field__icon" aria-hidden="true">search</span>
+        <input id="flight-id"
+               type="number"
+               min="1"
+               inputmode="numeric"
+               placeholder="Ej. 42"
+               @bind="flightId"
+               aria-describedby="flight-help" />
+        <button class="primary-button" type="submit" disabled="@IsLoading">
+            @if (IsLoading)
+            {
+                <span class="button-loader" aria-hidden="true"></span>
+                <span>Buscando</span>
+            }
+            else
+            {
+                <span>Buscar vuelo</span>
+                <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+            }
+        </button>
+    </div>
+    <small id="flight-help">Ingresa un número mayor que cero.</small>
+</form>
+
+<div class="quick-search" aria-label="Búsquedas rápidas">
+    <span>Prueba con:</span>
+    @foreach (var suggestion in Suggestions)
+    {
+        <button class="filter-chip" type="button" @onclick="() => SelectSuggestionAsync(suggestion)">
+            <span class="material-symbols-rounded" aria-hidden="true">flight</span>
+            @suggestion
+        </button>
+    }
+</div>
+
+@code {
+    private static readonly int[] Suggestions = [1, 10, 42];
+    private int? flightId;
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int?> OnSearch { get; set; }
+
+    private Task SubmitAsync() => OnSearch.InvokeAsync(flightId);
+
+    private Task SelectSuggestionAsync(int suggestion)
+    {
+        flightId = suggestion;
+        return SubmitAsync();
+    }
+}

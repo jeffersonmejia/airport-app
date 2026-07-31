@@ -1,0 +1,219 @@
+@page "/"
+@page "/flights"
+@using Airport.Features.Flights.Presentation.Web.Models
+@using Airport.Features.Flights.Presentation.Web.Services
+@inject FlightsClient FlightsClient
+
+<PageTitle>Vuelos | Airport</PageTitle>
+
+<section class="hero" aria-labelledby="page-title">
+    <div class="hero__content">
+        <span class="eyebrow">
+            <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+            Tu viaje empieza aquí
+        </span>
+        <h1 id="page-title">Encuentra los detalles de tu vuelo</h1>
+        <p>Consulta horarios y datos esenciales usando el identificador del vuelo.</p>
+
+        <FlightSearch IsLoading="isLoading" OnSearch="SearchAsync" />
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+        <div class="orbit orbit--large"></div>
+        <div class="orbit orbit--small"></div>
+        <span class="material-symbols-rounded hero__plane">flight</span>
+        <div class="destination-card destination-card--top">
+            <span class="material-symbols-rounded">schedule</span>
+            <span><small>Información</small><strong>En tiempo real</strong></span>
+        </div>
+        <div class="destination-card destination-card--bottom">
+            <span class="material-symbols-rounded">luggage</span>
+            <span><small>Tu viaje</small><strong>En un solo lugar</strong></span>
+        </div>
+    </div>
+</section>
+
+<section class="result-section" aria-live="polite" aria-busy="@isLoading">
+    @if (isLoading)
+    {
+        <div class="flight-card flight-card--skeleton" aria-label="Cargando información del vuelo">
+            <span class="skeleton skeleton--short"></span>
+            <span class="skeleton skeleton--title"></span>
+            <span class="skeleton skeleton--wide"></span>
+        </div>
+    }
+    else if (errorMessage is not null)
+    {
+        <div class="state-card state-card--error" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+            <div>
+                <h2>No pudimos completar la búsqueda</h2>
+                <p>@errorMessage</p>
+            </div>
+            <button class="text-button" type="button" @onclick="() => SearchAsync(currentFlightId)">Reintentar</button>
+        </div>
+    }
+    else if (hasSearched && flight is null)
+    {
+        <div class="state-card">
+            <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+            <div>
+                <h2>Ese vuelo no aparece</h2>
+                <p>Revisa el identificador e intenta con otro número.</p>
+            </div>
+        </div>
+    }
+    else if (flight is not null)
+    {
+        <FlightCard Flight="flight" />
+    }
+    else
+    {
+        <div class="welcome-strip">
+            <span class="material-symbols-rounded" aria-hidden="true">tips_and_updates</span>
+            <p><strong>Todo listo para despegar.</strong> Tu resultado aparecerá aquí.</p>
+        </div>
+    }
+</section>
+
+<section class="explore-section" aria-labelledby="explore-title" aria-live="polite">
+    <header class="section-heading">
+        <div>
+            <span class="eyebrow">Próximas salidas</span>
+            <h2 id="explore-title">Explora los vuelos</h2>
+        </div>
+        @if (flightPage is not null)
+        {
+            <span class="result-count">@flightPage.TotalItems.ToString("N0") registros</span>
+        }
+    </header>
+
+    @if (isListLoading)
+    {
+        <div class="flight-list" aria-label="Cargando vuelos">
+            @for (var index = 0; index < 3; index++)
+            {
+                <div class="list-skeleton skeleton"></div>
+            }
+        </div>
+    }
+    else if (listError is not null)
+    {
+        <div class="state-card state-card--error" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">sync_problem</span>
+            <div>
+                <h2>No pudimos cargar el listado</h2>
+                <p>@listError</p>
+            </div>
+            <button class="text-button" type="button" @onclick="() => LoadPageAsync(currentPage)">Reintentar</button>
+        </div>
+    }
+    else if (flightPage is not null && flightPage.Items.Count > 0)
+    {
+        <div class="flight-list">
+            @foreach (var item in flightPage.Items)
+            {
+                <FlightListItem Flight="item" />
+            }
+        </div>
+
+        <nav class="pagination" aria-label="Paginación de vuelos">
+            <button class="page-button" type="button"
+                    disabled="@(flightPage.Page <= 1)"
+                    @onclick="() => LoadPageAsync(flightPage.Page - 1)">
+                <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+                Anterior
+            </button>
+            <span>Página <strong>@flightPage.Page</strong> de <strong>@flightPage.TotalPages</strong></span>
+            <button class="page-button" type="button"
+                    disabled="@(flightPage.Page >= flightPage.TotalPages)"
+                    @onclick="() => LoadPageAsync(flightPage.Page + 1)">
+                Siguiente
+                <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+            </button>
+        </nav>
+    }
+    else
+    {
+        <div class="state-card">
+            <span class="material-symbols-rounded" aria-hidden="true">flight_land</span>
+            <div>
+                <h2>No hay vuelos disponibles</h2>
+                <p>Cuando existan registros aparecerán en esta sección.</p>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private const int PageSize = 8;
+    private int? currentFlightId;
+    private FlightViewModel? flight;
+    private FlightSearchResultViewModel? flightPage;
+    private string? errorMessage;
+    private string? listError;
+    private bool isLoading;
+    private bool isListLoading;
+    private bool hasSearched;
+    private int currentPage = 1;
+
+    protected override async Task OnInitializedAsync() => await LoadPageAsync(1);
+
+    private async Task SearchAsync(int? flightId)
+    {
+        if (flightId is null or <= 0)
+        {
+            errorMessage = "Ingresa un identificador de vuelo mayor que cero.";
+            hasSearched = true;
+            return;
+        }
+
+        isLoading = true;
+        hasSearched = true;
+        currentFlightId = flightId;
+        errorMessage = null;
+        flight = null;
+
+        try
+        {
+            flight = await FlightsClient.FindByIdAsync(flightId.Value, CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "La API no está disponible en este momento. Inténtalo nuevamente.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPageAsync(int page)
+    {
+        if (page < 1)
+        {
+            return;
+        }
+
+        currentPage = page;
+        isListLoading = true;
+        listError = null;
+
+        try
+        {
+            flightPage = await FlightsClient.SearchAsync(page, PageSize, CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            listError = "La API no está disponible en este momento.";
+        }
+        catch (InvalidOperationException)
+        {
+            listError = "La API devolvió una respuesta que no se pudo interpretar.";
+        }
+        finally
+        {
+            isListLoading = false;
+        }
+    }
+}

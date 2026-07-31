@@ -1,0 +1,39 @@
+@using Airport.Features.Flights.Presentation.Web.Models
+
+<article class="flight-card">
+    <header class="flight-card__header">
+        <div>
+            <span class="status-chip"><span></span> Vuelo encontrado</span>
+            <h2>@Flight.Number</h2>
+        </div>
+        <span class="flight-id">ID @Flight.Id</span>
+    </header>
+
+    <div class="timeline">
+        <div class="timeline__point">
+            <small>Salida</small>
+            <strong>@Flight.Departure.ToLocalTime().ToString("HH:mm")</strong>
+            <span>@Flight.Departure.ToLocalTime().ToString("dd MMM yyyy")</span>
+        </div>
+        <div class="timeline__route">
+            <span>@Flight.DurationHours.ToString("0.##") h</span>
+            <div><i></i><span class="material-symbols-rounded" aria-hidden="true">flight</span><i></i></div>
+            <small>Duración estimada</small>
+        </div>
+        <div class="timeline__point timeline__point--end">
+            <small>Llegada</small>
+            <strong>@Flight.Arrival.ToLocalTime().ToString("HH:mm")</strong>
+            <span>@Flight.Arrival.ToLocalTime().ToString("dd MMM yyyy")</span>
+        </div>
+    </div>
+
+    <footer class="flight-card__footer">
+        <span><span class="material-symbols-rounded" aria-hidden="true">airlines</span> Aerolínea @Flight.AirlineId</span>
+        <span><span class="material-symbols-rounded" aria-hidden="true">airplane_ticket</span> Avión @Flight.AirplaneId</span>
+    </footer>
+</article>
+
+@code {
+    [Parameter, EditorRequired]
+    public FlightViewModel Flight { get; set; } = default!;
+}

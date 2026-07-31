@@ -42,20 +42,14 @@ consume posteriormente ese esquema existente.
 
 ## Decisión sobre proyectos
 
-Se usará un proyecto por feature, en lugar de cuatro o cinco proyectos por feature.
-Así se conserva la estructura solicitada sin provocar decenas de compilaciones y
-restauraciones de paquetes en un equipo de dos núcleos y 6 GB de RAM.
+Cada feature activa tendrá proyectos separados para Domain, Application,
+Infrastructure y sus dos adaptadores de Presentation: API y Razor. De este modo, las
+reglas hexagonales se validan mediante referencias de ensamblado y no dependen sólo de
+convenciones de carpetas.
 
-Las fronteras internas se mantendrán mediante:
-
-- Namespaces alineados con las cuatro áreas.
-- Tipos `internal` por defecto.
-- Un único punto público de registro por módulo.
-- Reglas de dependencia documentadas.
-- Pruebas de arquitectura posteriores que detecten referencias prohibidas.
-
-Si el profesor exige aislamiento a nivel de ensamblado, cada carpeta podrá convertirse
-después en un proyecto independiente sin cambiar la organización funcional.
+Para cuidar los dos núcleos y 6 GB de RAM, los proyectos se crearán únicamente cuando
+se implemente una feature real. No se generarán treinta proyectos vacíos y, cuando se
+autorice la compilación, se trabajará sin paralelismo innecesario.
 
 ## Estructura objetivo
 
@@ -67,15 +61,15 @@ src/
     Airport.Web/                              # Host Razor/Blazor y shell visual
 
   BuildingBlocks/
-    Airport.SharedKernel/                     # Abstracciones mínimas compartidas
+    Airport.SharedKernel/                     # Se crea sólo al existir una abstracción real
 
   Features/
     Flights/
-      Airport.Features.Flights.csproj
       Domain/
+        Airport.Features.Flights.Domain.csproj
         Flight.cs
-        FlightNumber.cs
       Application/
+        Airport.Features.Flights.Application.csproj
         Ports/
           IFlightReader.cs
         GetFlight/
@@ -89,92 +83,38 @@ src/
           SearchFlightsHandler.cs
           SearchFlightsResponse.cs
       Infrastructure/
+        Airport.Features.Flights.Infrastructure.csproj
         Persistence/
-          AirportDbContext.cs
+          FlightsDbContext.cs
           FlightRow.cs
-          FlightConfiguration.cs
           PostgresFlightReader.cs
+        DependencyInjection.cs
       Presentation/
         Api/
-          GetFlightEndpoint.cs
-          SearchFlightsEndpoint.cs
+          Airport.Features.Flights.Presentation.Api.csproj
+          FlightsModule.cs
+          GetFlight/
+            GetFlightEndpoint.cs
+          SearchFlights/
+            SearchFlightsEndpoint.cs
         Web/
+          Airport.Features.Flights.Presentation.Web.csproj
           Pages/
             Flights.razor
           Components/
             FlightCard.razor
             FlightSearch.razor
-      FlightsModule.cs                       # Registro público del módulo
+          Models/
+          Services/
+          DependencyInjection.cs
 
-    Bookings/
-      Airport.Features.Bookings.csproj
+    FeatureSiguiente/                         # Sólo cuando exista un caso de uso
       Domain/
       Application/
       Infrastructure/
       Presentation/
         Api/
         Web/
-      BookingsModule.cs
-
-    Passengers/
-      Airport.Features.Passengers.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      PassengersModule.cs
-
-    Airports/
-      Airport.Features.Airports.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      AirportsModule.cs
-
-    Airlines/
-      Airport.Features.Airlines.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      AirlinesModule.cs
-
-    Fleet/
-      Airport.Features.Fleet.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      FleetModule.cs
-
-    Employees/
-      Airport.Features.Employees.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      EmployeesModule.cs
-
-    Weather/
-      Airport.Features.Weather.csproj
-      Domain/
-      Application/
-      Infrastructure/
-      Presentation/
-        Api/
-        Web/
-      WeatherModule.cs
 
 tests/
   Airport.UnitTests/
@@ -228,8 +168,8 @@ Reglas obligatorias:
 5. Una feature no accede a las tablas o clases internas de otra feature.
 6. La comunicación entre features usa contratos públicos pequeños o eventos, nunca
    referencias a adaptadores internos.
-7. Cada feature expone un único archivo `FeatureModule.cs` para registrar servicios,
-   endpoints y presentación.
+7. `Presentation/Api` expone el registro HTTP del módulo y `Presentation/Web` expone
+   el registro de sus páginas, componentes y clientes.
 8. Las consultas grandes siempre usan paginación, proyección y cancelación.
 
 ## Vertical slice dentro de una feature
@@ -269,34 +209,34 @@ Una relación SQL entre tablas no autoriza a mezclar módulos. Por ejemplo, Flig
 puede usar el identificador de Airline, pero los detalles completos de una aerolínea
 pertenecen a Airlines.
 
-## Migración de la estructura actual
+## Estado de la reorganización
 
-La implementación existente es un prototipo arquitectónico y debe reorganizarse antes
-de añadir más casos de uso.
+- [x] Crear `src/Hosts` y `src/Features`.
+- [x] Mover `Airport.Api` y `Airport.Web` a `src/Hosts`.
+- [x] Separar Flights en proyectos Domain, Application, Infrastructure,
+      Presentation/Api y Presentation/Web.
+- [x] Mover `Flight` a `Flights/Domain`.
+- [x] Mover query, validator, handler, response y puerto a `Flights/Application`.
+- [x] Mover `FlightsDbContext`, mapeo y lector PostgreSQL a
+      `Flights/Infrastructure`.
+- [x] Mantener EF Core y Npgsql exclusivamente dentro de Infrastructure.
+- [x] Mover endpoint, página y componentes Razor a `Flights/Presentation`.
+- [x] Crear registros públicos separados para Presentation/Api y Presentation/Web.
+- [x] Implementar búsqueda paginada con proyección, `AsNoTracking` y cancelación.
+- [x] Incorporar listado y navegación de páginas en la presentación Razor.
+- [x] Retirar los proyectos globales `Airport.Core` y `Airport.Infrastructure`.
+- [x] Reubicar las pruebas unitarias bajo `Features/Flights` sin ejecutarlas.
+- [ ] Crear SharedKernel cuando aparezca una abstracción compartida real.
+- [ ] Añadir pruebas de arquitectura para las reglas de dependencia.
+- [ ] Restaurar paquetes, compilar y ejecutar pruebas cuando se autorice.
 
-- [ ] Crear `src/Hosts`, `src/BuildingBlocks` y `src/Features`.
-- [ ] Mover `Airport.Api` y `Airport.Web` a `src/Hosts`.
-- [ ] Crear el módulo `Airport.Features.Flights`.
-- [ ] Mover `Flight` a `Flights/Domain`.
-- [ ] Mover query, validator, handler, response y puerto a `Flights/Application`.
-- [ ] Mover el mapeo y lector PostgreSQL a `Flights/Infrastructure`.
-- [ ] Mantener `AirportDbContext`, configuraciones Fluent API y repositorios EF Core
-      dentro de Infrastructure.
-- [ ] Mover el endpoint y la página Razor a `Flights/Presentation`.
-- [ ] Crear `FlightsModule` como único punto de registro público.
-- [ ] Retirar los proyectos globales `Airport.Core` y `Airport.Infrastructure` cuando
-      Flights ya funcione dentro del módulo.
-- [ ] Replicar la plantilla sólo al comenzar una feature real; no crear módulos vacíos
-      con código ficticio.
-- [ ] Crear pruebas unitarias junto a la estructura de cada feature.
-- [ ] Añadir pruebas de arquitectura para las reglas de namespace y dependencia.
-
-Esta reorganización se hará sin modificar la etapa 002 ni usar migraciones para cargar
-el dump académico.
+Esta reorganización no modificó la etapa 002 ni utilizó migraciones para cargar el
+dump académico.
 
 ## Orden funcional posterior
 
-1. Terminar Flights con consulta individual, búsqueda y paginación.
+1. Flights ya cuenta con consulta individual, búsqueda y paginación; falta validar
+   su ejecución cuando se autoricen restore, build y acceso a la base.
 2. Implementar Airports y Airlines para enriquecer la información del vuelo.
 3. Implementar Fleet.
 4. Implementar Passengers y Bookings.
