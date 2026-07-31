@@ -3,11 +3,10 @@
 ## Forma de trabajo preferida
 
 - Primero se implementan los cambios solicitados en el código.
-- Después de codificar, se informa qué se cambió y se sugieren los reinicios que sean convenientes.
-- No se debe reiniciar la aplicación, la API, el frontend, los contenedores ni el servicio de base de datos sin autorización expresa del usuario.
-- Si un reinicio es necesario o recomendable para probar o aplicar los cambios, se debe solicitar confirmación antes de ejecutarlo.
+- Después de codificar, se informa qué se cambió y el resultado de la compilación y las pruebas.
+- Los reinicios de la aplicación, la API, el frontend, los contenedores y el servicio de base de datos los realiza el propio usuario; el agente no debe reiniciarlos ni sugerir comandos de reinicio.
 - Se permite consultar y modificar la base de datos cuando sea necesario para cumplir una tarea autorizada, incluyendo cambios de esquema, datos y migraciones relacionados con esa tarea.
-- No se debe reiniciar, restablecer, vaciar, eliminar ni recrear la base de datos sin autorización expresa. Estas acciones se deben proponer primero, explicando brevemente su impacto, y esperar la confirmación del usuario.
+- No se debe reiniciar, restablecer, vaciar, eliminar ni recrear la base de datos. Estas acciones las propone el agente explicando brevemente su impacto y las ejecuta el usuario.
 - Siempre se deben conservar los datos existentes, salvo que el usuario autorice explícitamente una operación destructiva.
 
 ## Contexto técnico
@@ -24,7 +23,7 @@
 
 - Se pueden compilar y ejecutar pruebas sin pedir autorización, siempre que esto no reinicie servicios ni realice cambios destructivos en la base de datos.
 - Al terminar una modificación, se deben comunicar el resultado de la compilación y las pruebas realizadas.
-- Si para verificar el cambio hace falta reiniciar algún componente, se debe sugerir el comando o la acción y esperar la autorización del usuario.
+- Si para verificar el cambio hace falta reiniciar algún componente, el agente sólo lo indica en el resumen final; el reinicio lo ejecuta el usuario.
 
 ## Versionamiento
 
