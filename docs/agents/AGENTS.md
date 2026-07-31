@@ -16,7 +16,7 @@
 - La interfaz web usa Razor/Blazor.
 - La solución principal es `Airport.sln`.
 - Los hosts ejecutables son `src/Hosts/Airport.Api` y `src/Hosts/Airport.Web`.
-- El proyecto está organizado actualmente con arquitectura feature-first y separación entre Domain, Application, Infrastructure y Presentation.
+- El proyecto está organizado actualmente con arquitectura hexagonal (Domain, Application, Infrastructure y Presentation con puertos y adaptadores), vertical slices por caso de uso y screaming architecture: las carpetas de `src/Features` se nombran por concepto del negocio (Flights, Bookings, Auth, Administration), tal como se documenta en `DIAGRAMS.md`.
 - Las credenciales y la cadena de conexión deben mantenerse fuera del repositorio y administrarse mediante .NET User Secrets o configuración segura equivalente.
 
 ## Verificación

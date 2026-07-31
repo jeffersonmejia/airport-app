@@ -6,42 +6,46 @@
 
 ## 1. Organización obligatoria del proyecto
 
-### 1.1 Carpetas mínimas
+### 1.1 Arquitectura y estructura
 
-- [ ] `Controllers`
-- [ ] `Models`
-- [ ] `Views`
-- [ ] `Data`
-- [ ] `Services`
-- [ ] `ViewModels`
-- [ ] `Migrations`
-- [ ] `wwwroot`
+El proyecto usa **arquitectura hexagonal** (Domain, Application, Infrastructure y
+Presentation con puertos y adaptadores), **vertical slices** (cada caso de uso es un
+slice completo dentro de `Application`) y **screaming architecture** (las carpetas se
+nombran por concepto del negocio), tal como está organizado el proyecto actual.
+
+- [ ] Organización screaming: `src/Features/<Concepto>` (Flights, Bookings, Auth, Administration, ...).
+- [ ] Cada feature con las fronteras hexagonales: `Domain`, `Application`, `Infrastructure` y `Presentation` (Api + Web).
+- [ ] Hosts delgados: `src/Hosts/Airport.Api` y `src/Hosts/Airport.Web`.
+- [ ] Building blocks transversales en `src/BuildingBlocks` (SharedKernel, Caching).
+- [ ] `Migrations` dentro de `Infrastructure`.
+- [ ] `wwwroot`, CSS y componentes del negocio dentro de `Presentation/Web`.
+- [ ] Cada caso de uso vive en `Application` como un vertical slice (`GetFlight`, `SearchFlights`, `CreateBooking`, `Login`, ...).
 
 ### 1.2 Separación de lógica
 
-La solución debe separar:
+La solución separa responsabilidades por frontera hexagonal:
 
-- [ ] Acceso a datos.
-- [ ] Reglas del proceso de compra.
-- [ ] Gestión de pagos.
-- [ ] Autenticación.
-- [ ] Presentación de información.
-- [ ] Validación de formularios.
+- [ ] Acceso a datos y EF Core → `Infrastructure`.
+- [ ] Reglas del proceso de compra → `Domain` y `Application`.
+- [ ] Gestión de pagos → slice en `Application` + adaptador de pasarela en `Infrastructure`.
+- [ ] Autenticación → feature `Auth` independiente.
+- [ ] Presentación de información → `Presentation/Api` y `Presentation/Web`.
+- [ ] Validación de formularios y casos de uso → validadores del slice en `Application`.
 
 > [!CAUTION]
-> No debe colocarse toda la lógica dentro de una sola acción del controlador.
+> No debe colocarse toda la lógica dentro de una sola acción del controlador, endpoint o página.
 
 ### 1.3 Separación mínima recomendada para evitar penalizaciones
 
-- [ ] Controlador de búsqueda y detalle de vuelos.
-- [ ] Servicio de consulta de vuelos.
-- [ ] Servicio de cálculo de tarifas.
-- [ ] Controlador de órdenes.
-- [ ] Servicio de órdenes.
-- [ ] Servicio de pagos.
-- [ ] Controlador de historial.
-- [ ] Controlador administrativo.
-- [ ] ViewModels específicos para búsqueda, paginación, detalle, pago y comprobante.
+- [ ] Slice `SearchFlights` y `GetFlight` en `Features/Flights/Application`.
+- [ ] Puerto `IFlightReader` en `Application/Ports`.
+- [ ] Adaptador `PostgresFlightReader` en `Features/Flights/Infrastructure`.
+- [ ] Slices de creación de órdenes, tarifas e historial en `Features/Bookings/Application`.
+- [ ] Reglas de cálculo de tarifas en `Features/Bookings/Domain`.
+- [ ] Slice de pago con puerto de pasarela (`IPaymentGateway`) y adaptador en `Infrastructure`.
+- [ ] Slices `Login`, `Logout` y `GetCurrentUser` en `Features/Auth/Application`.
+- [ ] Módulo administrativo en `Features/Administration`.
+- [ ] Contratos `Response` por slice para búsqueda, paginación, detalle, pago y comprobante (en lugar de ViewModels globales).
 
 ---
 

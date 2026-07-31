@@ -87,7 +87,7 @@ La aplicación debe ser un sistema web funcional de compra de boletos aeroportua
 
 ### 3.2 Capacidades técnicas que deben demostrarse
 
-- [ ] Arquitectura MVC.
+- [ ] Arquitectura hexagonal con vertical slices y screaming architecture (carpetas nombradas por el negocio: `Flights`, `Bookings`, `Auth`, ...).
 - [ ] Acceso a datos mediante Entity Framework Core.
 - [ ] Uso de PostgreSQL.
 - [ ] Database First para Airport.

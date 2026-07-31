@@ -48,6 +48,8 @@ Además de las pruebas funcionales (manuales o de integración), **se deben escr
 
 Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 
+- [ ] Tests de arquitectura que validen las reglas hexagonales de dependencia entre Domain, Application, Infrastructure y Presentation (ver `tests/Airport.ArchitectureTests`).
+
 ### 2.1 Cálculo de tarifas y montos
 
 - [ ] Cálculo correcto de la tarifa según la regla de negocio.
@@ -170,20 +172,23 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 
 - [ ] Crear repositorio.
 - [ ] Configurar `.gitignore`.
-- [ ] Crear proyecto ASP.NET Core MVC.
+- [ ] Crear la solución con hosts delgados (`Airport.Api`, `Airport.Web`) y `BuildingBlocks`.
+- [ ] Crear el esqueleto hexagonal de las features (Domain, Application, Infrastructure y Presentation) con sus referencias.
 - [ ] Configurar PostgreSQL.
 - [ ] Importar Airport.
 - [ ] Verificar `bookings.flights`.
-- [ ] Agregar Npgsql.
-- [ ] Generar `AirportContext`.
-- [ ] Configurar Identity.
-- [ ] Crear migración inicial.
+- [ ] Agregar Npgsql dentro de `Infrastructure`.
+- [ ] Generar `AirportContext` en `Infrastructure`.
+- [ ] Configurar Identity en la feature `Auth`.
+- [ ] Crear migración inicial en `Infrastructure`.
 
 ### Fase 2. Seguridad y usuarios
 
-- [ ] Registro.
-- [ ] Login.
-- [ ] Logout.
+- [ ] Slices `Login`, `Logout` y `GetCurrentUser` en `Features/Auth/Application`.
+- [ ] Puertos de token y sesión en `Features/Auth/Application/Ports`.
+- [ ] Adaptadores JWT y sesión en `Features/Auth/Infrastructure`.
+- [ ] Endpoints en `Features/Auth/Presentation/Api`.
+- [ ] Páginas y componentes en `Features/Auth/Presentation/Web`.
 - [ ] Roles.
 - [ ] Usuario administrador.
 - [ ] Página de acceso denegado.
@@ -191,7 +196,10 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 
 ### Fase 3. Consulta de vuelos
 
-- [ ] Formulario origen-destino-fecha.
+- [ ] Slices `SearchFlights` y `GetFlight` en `Features/Flights/Application`.
+- [ ] Puerto `IFlightReader` y adaptador `PostgresFlightReader`.
+- [ ] Endpoints en `Features/Flights/Presentation/Api`.
+- [ ] Formulario origen-destino-fecha en `Features/Flights/Presentation/Web`.
 - [ ] Búsqueda real.
 - [ ] Dos filtros.
 - [ ] Ordenamiento.
@@ -201,19 +209,17 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 
 ### Fase 4. Órdenes
 
-- [ ] Tarifas.
-- [ ] Cálculo del servidor.
-- [ ] Orden pendiente.
-- [ ] Detalle de orden.
+- [ ] Reglas de tarifas y montos en `Features/Bookings/Domain`.
+- [ ] Slice `CreateBooking` (cálculo del servidor, orden pendiente y detalle de orden).
+- [ ] Puerto de persistencia (`IBookingRepository`) y adaptador en `Features/Bookings/Infrastructure`.
 - [ ] Validaciones de propiedad.
-- [ ] Historial inicial.
+- [ ] Slice de historial.
 
 ### Fase 5. Pago
 
 - [ ] Configurar Sandbox.
-- [ ] Crear solicitud.
-- [ ] Completar pago.
-- [ ] Verificar backend.
+- [ ] Puerto `IPaymentGateway` y adaptador PayPal/PayPhone en `Features/Bookings/Infrastructure`.
+- [ ] Slice de pago: creación de solicitud y verificación desde el backend.
 - [ ] Registrar pago.
 - [ ] Registrar transacción.
 - [ ] Manejar estados.
@@ -224,7 +230,7 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 - [ ] Registrar boleto comprado.
 - [ ] Generar comprobante.
 - [ ] Mostrar historial.
-- [ ] Vista administrativa.
+- [ ] Módulo `Administration` (vista administrativa protegida).
 
 ### Fase 7. Pruebas y evidencia
 

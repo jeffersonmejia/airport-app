@@ -33,7 +33,7 @@ La aplicación debe utilizar LINQ para recuperar, filtrar, ordenar y proyectar i
 | Filtro 2 | Estado o fecha | [ ] |
 | Ordenamiento | Salida programada ascendente o descendente | [ ] |
 | Consulta con relaciones | Vuelo con aeropuerto, ruta o aeronave | [ ] |
-| Proyección con `Select()` | ViewModel del resultado de búsqueda | [ ] |
+| Proyección con `Select()` | Response del slice de búsqueda (`SearchFlightsResponse`) | [ ] |
 | Conteo o totalización | Total de vuelos o total de ventas | [ ] |
 | Consulta por fecha | Vuelos de la fecha seleccionada | [ ] |
 | Consulta por estado | Scheduled, Departed, Cancelled u otro estado real | [ ] |
