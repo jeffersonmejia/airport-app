@@ -53,3 +53,5 @@ import-work/
 *.log
 *.tmp
 *.pid
+
+docs/users.md
