@@ -39,8 +39,8 @@ public static class GetFlightEndpoint
         var response = await handler.HandleAsync(query, cancellationToken);
         return response is null
             ? Results.Problem(
-                title: "Vuelo no encontrado",
-                detail: $"No existe un vuelo con identificador {id}.",
+                title: "Recurso no encontrado",
+                detail: "El recurso solicitado no existe.",
                 statusCode: StatusCodes.Status404NotFound)
             : Results.Ok(response);
     }

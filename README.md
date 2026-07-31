@@ -23,8 +23,15 @@ La API lee desde .NET User Secrets:
 - `Auth:Jwt:Issuer`
 - `Auth:Jwt:Audience`
 - `Auth:Jwt:SigningKey`
+- `Auth:Jwt:MinimumAccessTokenMinutes`
+- `Auth:Jwt:MaximumAccessTokenMinutes`
 - `Auth:Jwt:AccessTokenMinutes`
 - `Auth:Jwt:ClockSkewSeconds`
 
 Los valores reales no se guardan en Git. La restauración de PostgreSQL se administra
 por separado mediante `run.txt`.
+
+Las URLs públicas no son secretos. En desarrollo, `Airport.Web` obtiene
+`ApiBaseUrl` desde `wwwroot/appsettings.Development.json` y `Airport.Api` obtiene los
+orígenes permitidos desde `appsettings.Development.json`. Para producción se deben
+proporcionar `ApiBaseUrl` y `Cors:AllowedOrigins` con los dominios reales del entorno.

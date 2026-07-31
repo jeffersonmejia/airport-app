@@ -1,5 +1,5 @@
 using System.Reflection;
-using Airport.Features.Auth.Application.Security;
+using Airport.Features.Auth.Application.Ports;
 using Airport.Features.Auth.Domain;
 using Airport.Features.Auth.Infrastructure.Security;
 using Airport.Features.Auth.Presentation.Web;
@@ -73,7 +73,7 @@ public sealed class DependencyRulesTests
     [Fact]
     public void AuthApplication_DoesNotReferenceSecurityAdapters()
     {
-        var references = ReferencesOf(typeof(TokenLifetimePolicy).Assembly);
+        var references = ReferencesOf(typeof(IAccessTokenIssuer).Assembly);
 
         Assert.DoesNotContain(references, IsInfrastructure);
         Assert.DoesNotContain(references, IsPresentation);

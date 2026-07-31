@@ -10,7 +10,20 @@ public sealed class JwtOptions
 
     public string SigningKey { get; init; } = string.Empty;
 
+    public int MinimumAccessTokenMinutes { get; init; }
+
+    public int MaximumAccessTokenMinutes { get; init; }
+
     public int AccessTokenMinutes { get; init; }
 
     public int ClockSkewSeconds { get; init; }
+
+    public bool HasValidAccessTokenRange =>
+        MinimumAccessTokenMinutes > 0
+        && MaximumAccessTokenMinutes >= MinimumAccessTokenMinutes;
+
+    public bool IsAccessTokenLifetimeAllowed =>
+        HasValidAccessTokenRange
+        && AccessTokenMinutes >= MinimumAccessTokenMinutes
+        && AccessTokenMinutes <= MaximumAccessTokenMinutes;
 }

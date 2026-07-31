@@ -27,7 +27,6 @@ public static class FlightsModule
     public static IEndpointRouteBuilder MapFlightsModule(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGroup("/api/flights")
-            .WithTags("Flights")
             .MapGetFlight()
             .MapSearchFlights();
 

@@ -1,5 +1,7 @@
 @page "/"
 @page "/flights"
+@using System.Net
+@using Airport.Features.Flights.Presentation.Web.Errors
 @using Airport.Features.Flights.Presentation.Web.Models
 @using Airport.Features.Flights.Presentation.Web.Services
 @using Airport.SharedKernel.Pagination
@@ -179,9 +181,14 @@
         {
             flight = await FlightsClient.FindByIdAsync(flightId.Value, CancellationToken.None);
         }
+        catch (HttpRequestException exception)
+            when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            errorMessage = SafeUserMessages.Unauthorized;
+        }
         catch (HttpRequestException)
         {
-            errorMessage = "La API no está disponible en este momento. Inténtalo nuevamente.";
+            errorMessage = SafeUserMessages.ServiceUnavailable;
         }
         finally
         {
@@ -204,13 +211,18 @@
         {
             flightPage = await FlightsClient.SearchAsync(page, PageSize, CancellationToken.None);
         }
+        catch (HttpRequestException exception)
+            when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            listError = SafeUserMessages.Unauthorized;
+        }
         catch (HttpRequestException)
         {
-            listError = "La API no está disponible en este momento.";
+            listError = SafeUserMessages.ServiceUnavailable;
         }
         catch (InvalidOperationException)
         {
-            listError = "La API devolvió una respuesta que no se pudo interpretar.";
+            listError = SafeUserMessages.UnexpectedResponse;
         }
         finally
         {

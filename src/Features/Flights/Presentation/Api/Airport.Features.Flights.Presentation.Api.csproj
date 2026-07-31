@@ -7,6 +7,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
     <ProjectReference Include="..\..\Application\Airport.Features.Flights.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Airport.Features.Flights.Infrastructure.csproj" />
   </ItemGroup>
