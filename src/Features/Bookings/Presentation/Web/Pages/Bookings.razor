@@ -122,7 +122,12 @@
                 }
             </span>
             <button class="page-button" type="button" disabled="@(currentPage <= 1)" @onclick="PreviousPageAsync">Anterior</button>
-            <span>Página <strong>@currentPage</strong> de <strong>@pageResult.TotalPages</strong></span>
+            <span>Página <strong>@currentPage</strong> de <strong>@pageResult.TotalPages.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                @if (pageResult.TotalApproximate)
+                {
+                    <small>(aprox.)</small>
+                }
+            </span>
             <button class="page-button" type="button" disabled="@(!pageResult.HasNextPage)" @onclick="NextPageAsync">Siguiente</button>
         </nav>
     }
