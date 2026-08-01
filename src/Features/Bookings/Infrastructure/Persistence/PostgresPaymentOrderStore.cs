@@ -1,4 +1,5 @@
 using System.Data;
+using System.Linq.Expressions;
 using Airport.Features.Bookings.Domain;
 using Airport.Features.Payments.Application.Ports;
 using Microsoft.EntityFrameworkCore;
@@ -28,16 +29,18 @@ internal sealed class PostgresPaymentOrderStore(
     public Task<RecordedPayPalPayment?> FindByIdempotencyKeyAsync(
         string key,
         string userId,
-        CancellationToken cancellationToken) => QueryPayments(userId)
-        .Where(payment => payment.IdempotencyKey == key)
-        .SingleOrDefaultAsync(cancellationToken);
+        CancellationToken cancellationToken) => QueryPayment(
+            userId,
+            payment => payment.IdempotencyKey == key,
+            cancellationToken);
 
     public Task<RecordedPayPalPayment?> FindByProviderOrderAsync(
         string providerOrderId,
         string userId,
-        CancellationToken cancellationToken) => QueryPayments(userId)
-        .Where(payment => payment.ProviderOrderId == providerOrderId)
-        .SingleOrDefaultAsync(cancellationToken);
+        CancellationToken cancellationToken) => QueryPayment(
+            userId,
+            payment => payment.ProviderOrderId == providerOrderId,
+            cancellationToken);
 
     public async Task RecordCreatedAsync(
         PayableTicketOrder order,
@@ -92,7 +95,7 @@ internal sealed class PostgresPaymentOrderStore(
         row.CompletedAt = now;
         row.Order.Status = TicketOrder.Paid;
         row.Order.UpdatedAt = now;
-        row.Order.Ticket ??= new PurchasedTicketRow
+        row.Order.Ticket ??= dbContext.PurchasedTickets.Add(new PurchasedTicketRow
         {
             Id = Guid.NewGuid(),
             OrderId = row.OrderId,
@@ -100,24 +103,29 @@ internal sealed class PostgresPaymentOrderStore(
             FareCode = row.Order.FareCode,
             TicketNumber = $"APT-{now:yyyyMMdd}-{Guid.NewGuid():N}"[..21].ToUpperInvariant(),
             IssuedAt = now
-        };
+        }).Entity;
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private IQueryable<RecordedPayPalPayment> QueryPayments(string userId) =>
-        dbContext.Payments.AsNoTracking()
-            .Where(payment => payment.Order.UserId == userId)
-            .Select(payment => new RecordedPayPalPayment(
-                payment.Id,
-                payment.OrderId,
-                payment.Order.UserId,
-                payment.Order.FlightId,
-                payment.Order.FareCode,
-                payment.ProviderOrderId,
-                payment.ApprovalUrl,
-                payment.IdempotencyKey,
-                payment.Status,
-                payment.Amount,
-                payment.CurrencyCode));
+    private Task<RecordedPayPalPayment?> QueryPayment(
+        string userId,
+        Expression<Func<PaymentRow, bool>> filter,
+        CancellationToken cancellationToken) => dbContext.Payments
+        .AsNoTracking()
+        .Where(payment => payment.Order.UserId == userId)
+        .Where(filter)
+        .Select(payment => new RecordedPayPalPayment(
+            payment.Id,
+            payment.OrderId,
+            payment.Order.UserId,
+            payment.Order.FlightId,
+            payment.Order.FareCode,
+            payment.ProviderOrderId,
+            payment.ApprovalUrl,
+            payment.IdempotencyKey,
+            payment.Status,
+            payment.Amount,
+            payment.CurrencyCode))
+        .SingleOrDefaultAsync(cancellationToken);
 }
