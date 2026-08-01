@@ -1,4 +1,5 @@
 using Airport.Features.Flights.Application.ListFilterOptions;
+using Airport.Features.Flights.Application.Ports;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -9,13 +10,17 @@ public static class ListFilterOptionsEndpoints
 {
     public static RouteGroupBuilder MapListFilterOptions(this RouteGroupBuilder group)
     {
-        group.MapGet("/airlines", async (
-                ListFilterOptionsHandler handler,
-                CancellationToken cancellationToken) =>
-            Results.Ok(await handler.ListAirlinesAsync(cancellationToken)))
+        group.MapGet("/dates", HandleDepartureDatesAsync)
+            .WithName("ListFlightDepartureDates")
+            .WithSummary("Lista fechas con vuelos para una ruta")
+            .Produces<IReadOnlyList<DateOnly>>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/airlines", HandleAirlinesAsync)
             .WithName("ListFlightAirlines")
-            .WithSummary("Lista aerolíneas con vuelos disponibles")
-            .Produces<IReadOnlyCollection<AirlineOptionResponse>>();
+            .WithSummary("Lista aerolíneas disponibles para una ruta y fecha")
+            .Produces<IReadOnlyCollection<AirlineOptionResponse>>()
+            .ProducesValidationProblem();
 
         group.MapGet("/airplanes", HandleAirplanesAsync)
             .WithName("ListFlightAirplanes")
@@ -34,18 +39,63 @@ public static class ListFilterOptionsEndpoints
 
     private static async Task<IResult> HandleAirplanesAsync(
         short? airlineId,
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate,
         ListFilterOptionsHandler handler,
         CancellationToken cancellationToken)
     {
+        var errors = ValidateRoute(originAirportId, destinationAirportId, departureDate);
         if (airlineId is null or <= 0)
         {
-            return Results.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(airlineId)] = ["Selecciona una aerolínea válida."]
-            });
+            errors[nameof(airlineId)] = ["Selecciona una aerolínea válida."];
         }
 
-        return Results.Ok(await handler.ListAirplanesAsync(airlineId.Value, cancellationToken));
+        if (errors.Count > 0)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        return Results.Ok(await handler.ListAirplanesAsync(
+            airlineId!.Value,
+            CreateRoute(originAirportId, destinationAirportId, departureDate),
+            cancellationToken));
+    }
+
+    private static async Task<IResult> HandleDepartureDatesAsync(
+        int? originAirportId,
+        int? destinationAirportId,
+        ListFilterOptionsHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = ValidateRoute(originAirportId, destinationAirportId, null, false);
+        if (errors.Count > 0)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        return Results.Ok(await handler.ListDepartureDatesAsync(
+            originAirportId!.Value,
+            destinationAirportId!.Value,
+            cancellationToken));
+    }
+
+    private static async Task<IResult> HandleAirlinesAsync(
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate,
+        ListFilterOptionsHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = ValidateRoute(originAirportId, destinationAirportId, departureDate);
+        if (errors.Count > 0)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        return Results.Ok(await handler.ListAirlinesAsync(
+            CreateRoute(originAirportId, destinationAirportId, departureDate),
+            cancellationToken));
     }
 
     private static async Task<IResult> HandleFlightNumbersAsync(
@@ -56,6 +106,37 @@ public static class ListFilterOptionsEndpoints
         int? airplaneId,
         ListFilterOptionsHandler handler,
         CancellationToken cancellationToken)
+    {
+        var errors = ValidateRoute(originAirportId, destinationAirportId, departureDate);
+        if (airlineId is <= 0)
+        {
+            errors[nameof(airlineId)] = ["La aerolínea seleccionada no es válida."];
+        }
+
+        if (airplaneId is <= 0)
+        {
+            errors[nameof(airplaneId)] = ["El avión seleccionado no es válido."];
+        }
+
+        if (errors.Count > 0)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        return Results.Ok(await handler.ListFlightNumbersAsync(
+            originAirportId!.Value,
+            destinationAirportId!.Value,
+            departureDate!.Value,
+            airlineId,
+            airplaneId,
+            cancellationToken));
+    }
+
+    private static Dictionary<string, string[]> ValidateRoute(
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate,
+        bool requireDate = true)
     {
         var errors = new Dictionary<string, string[]>();
         if (originAirportId is null or <= 0)
@@ -68,17 +149,17 @@ public static class ListFilterOptionsEndpoints
             errors[nameof(destinationAirportId)] = ["Selecciona un aeropuerto de destino válido."];
         }
 
-        if (errors.Count > 0)
+        if (requireDate && departureDate is null)
         {
-            return Results.ValidationProblem(errors);
+            errors[nameof(departureDate)] = ["Selecciona una fecha disponible."];
         }
 
-        return Results.Ok(await handler.ListFlightNumbersAsync(
-            originAirportId!.Value,
-            destinationAirportId!.Value,
-            departureDate,
-            airlineId,
-            airplaneId,
-            cancellationToken));
+        return errors;
     }
+
+    private static FlightRouteFilter CreateRoute(
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate) =>
+        new(originAirportId!.Value, destinationAirportId!.Value, departureDate!.Value);
 }

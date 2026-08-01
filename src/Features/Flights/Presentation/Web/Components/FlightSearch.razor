@@ -7,7 +7,7 @@
         <label class="search-control">
             <span>Aeropuerto de origen</span>
             <select @bind="originAirportId" @bind:after="LoadDestinationsAsync"
-                    disabled="@(IsLoading || isOriginsLoading || isDestinationsLoading || isFlightNumbersLoading)">
+                    disabled="@(IsLoading || isOriginsLoading || IsDependentOptionsLoading)">
                 <option value="">@(isOriginsLoading ? "Cargando orígenes…" : "Todos los orígenes")</option>
                 @foreach (var airport in origins)
                 {
@@ -18,8 +18,8 @@
 
         <label class="search-control">
             <span>Aeropuerto de destino</span>
-            <select @bind="destinationAirportId" @bind:after="LoadFlightNumbersAsync"
-                    disabled="@(IsLoading || isDestinationsLoading || isFlightNumbersLoading || originAirportId is null)">
+            <select @bind="destinationAirportId" @bind:after="LoadDepartureDatesAsync"
+                    disabled="@(IsLoading || IsDependentOptionsLoading || originAirportId is null)">
                 <option value="">@(DestinationPlaceholder)</option>
                 @foreach (var airport in destinations)
                 {
@@ -30,10 +30,15 @@
 
         <label class="search-control">
             <span>Fecha de salida</span>
-            <input type="date" @bind="departureDate" @bind:after="LoadFlightNumbersAsync"
-                   min="@MinimumDepartureDateValue" max="@MaximumDepartureDateValue"
-                   disabled="@(IsLoading || isFlightNumbersLoading)" />
-            <small>Disponible del 1 de junio al 1 de septiembre de 2015.</small>
+            <select @bind="departureDate" @bind:after="LoadAirlinesAndFlightNumbersAsync"
+                    disabled="@(IsLoading || isDatesLoading || !HasSelectedRoute)">
+                <option value="">@DepartureDatePlaceholder</option>
+                @foreach (var availableDate in departureDates)
+                {
+                    <option value="@availableDate">@availableDate.ToString("dd/MM/yyyy")</option>
+                }
+            </select>
+            <small>Solo se muestran fechas con vuelos para la ruta elegida.</small>
         </label>
 
         <label class="search-control">
@@ -51,8 +56,8 @@
         <label class="search-control">
             <span>Aerolínea</span>
             <select @bind="airlineId" @bind:after="LoadAirplanesAsync"
-                    disabled="@(IsLoading || isAirlinesLoading || isAirplanesLoading || isFlightNumbersLoading)">
-                <option value="">@(isAirlinesLoading ? "Cargando aerolíneas…" : "Todas las aerolíneas")</option>
+                    disabled="@(IsLoading || isAirlinesLoading || isAirplanesLoading || isFlightNumbersLoading || !HasSelectedSchedule)">
+                <option value="">@AirlinePlaceholder</option>
                 @foreach (var airline in airlines)
                 {
                     <option value="@airline.Id">@airline.Label</option>
@@ -105,11 +110,6 @@
 </form>
 
 @code {
-    private const string MinimumDepartureDateValue = "2015-06-01";
-    private const string MaximumDepartureDateValue = "2015-09-01";
-    private static readonly DateOnly MinimumDepartureDate = new(2015, 6, 1);
-    private static readonly DateOnly MaximumDepartureDate = new(2015, 9, 1);
-
     private int? originAirportId;
     private int? destinationAirportId;
     private DateOnly? departureDate;
@@ -120,21 +120,39 @@
     private bool descending;
     private bool isOriginsLoading;
     private bool isDestinationsLoading;
+    private bool isDatesLoading;
     private bool isAirlinesLoading;
     private bool isAirplanesLoading;
     private bool isFlightNumbersLoading;
     private string? validationMessage;
     private IReadOnlyCollection<AirportViewModel> origins = [];
     private IReadOnlyCollection<AirportViewModel> destinations = [];
+    private IReadOnlyCollection<DateOnly> departureDates = [];
     private IReadOnlyCollection<AirlineOptionViewModel> airlines = [];
     private IReadOnlyCollection<AirplaneOptionViewModel> airplanes = [];
     private IReadOnlyCollection<string> flightNumbers = [];
 
     private bool HasSelectedRoute => originAirportId is not null && destinationAirportId is not null;
+    private bool HasSelectedSchedule => HasSelectedRoute && departureDate is not null;
+    private bool IsDependentOptionsLoading =>
+        isDestinationsLoading || isDatesLoading || isAirlinesLoading ||
+        isAirplanesLoading || isFlightNumbersLoading;
 
     private string DestinationPlaceholder => isDestinationsLoading
         ? "Cargando destinos…"
         : originAirportId is null ? "Selecciona primero un origen" : "Todos los destinos";
+
+    private string DepartureDatePlaceholder => isDatesLoading
+        ? "Cargando fechas…"
+        : !HasSelectedRoute
+            ? "Selecciona primero origen y destino"
+            : departureDates.Count == 0 ? "No hay fechas disponibles" : "Selecciona una fecha";
+
+    private string AirlinePlaceholder => isAirlinesLoading
+        ? "Cargando aerolíneas…"
+        : !HasSelectedSchedule
+            ? "Selecciona primero una ruta y fecha"
+            : airlines.Count == 0 ? "No hay aerolíneas disponibles" : "Todas las aerolíneas";
 
     private string AirplanePlaceholder => isAirplanesLoading
         ? "Cargando aviones…"
@@ -142,8 +160,8 @@
 
     private string FlightNumberPlaceholder => isFlightNumbersLoading
         ? "Cargando vuelos…"
-        : !HasSelectedRoute
-            ? "Selecciona primero origen y destino"
+        : !HasSelectedSchedule
+            ? "Selecciona primero ruta y fecha"
             : flightNumbers.Count == 0 ? "No hay vuelos compatibles" : "Todos los vuelos";
 
     [Parameter]
@@ -155,14 +173,9 @@
     protected override async Task OnInitializedAsync()
     {
         isOriginsLoading = true;
-        isAirlinesLoading = true;
         try
         {
-            var originsTask = FlightsClient.ListAirportsAsync(null, CancellationToken.None);
-            var airlinesTask = FlightsClient.ListAirlinesAsync(CancellationToken.None);
-            await Task.WhenAll(originsTask, airlinesTask);
-            origins = await originsTask;
-            airlines = await airlinesTask;
+            origins = await FlightsClient.ListAirportsAsync(null, CancellationToken.None);
         }
         catch (HttpRequestException)
         {
@@ -171,20 +184,12 @@
         finally
         {
             isOriginsLoading = false;
-            isAirlinesLoading = false;
         }
     }
 
     private Task SubmitAsync()
     {
         validationMessage = null;
-        if (departureDate is not null &&
-            (departureDate.Value < MinimumDepartureDate || departureDate.Value > MaximumDepartureDate))
-        {
-            validationMessage = "La fecha debe estar entre el 1 de junio y el 1 de septiembre de 2015.";
-            return Task.CompletedTask;
-        }
-
         if (originAirportId is not null && originAirportId == destinationAirportId)
         {
             validationMessage = "El aeropuerto de destino debe ser diferente del origen.";
@@ -207,10 +212,12 @@
         originAirportId = null;
         destinationAirportId = null;
         destinations = [];
+        departureDates = [];
         number = null;
         flightNumbers = [];
         departureDate = null;
         airlineId = null;
+        airlines = [];
         airplaneId = null;
         airplanes = [];
         sortBy = "departure";
@@ -225,6 +232,12 @@
     {
         destinationAirportId = null;
         destinations = [];
+        departureDate = null;
+        departureDates = [];
+        airlineId = null;
+        airlines = [];
+        airplaneId = null;
+        airplanes = [];
         number = null;
         flightNumbers = [];
         validationMessage = null;
@@ -251,13 +264,84 @@
         }
     }
 
+    private async Task LoadDepartureDatesAsync()
+    {
+        departureDate = null;
+        departureDates = [];
+        airlineId = null;
+        airlines = [];
+        airplaneId = null;
+        airplanes = [];
+        number = null;
+        flightNumbers = [];
+        validationMessage = null;
+
+        if (!HasSelectedRoute)
+        {
+            return;
+        }
+
+        isDatesLoading = true;
+        try
+        {
+            departureDates = await FlightsClient.ListDepartureDatesAsync(
+                originAirportId!.Value,
+                destinationAirportId!.Value,
+                CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar las fechas para esa ruta.";
+        }
+        finally
+        {
+            isDatesLoading = false;
+        }
+    }
+
+    private async Task LoadAirlinesAndFlightNumbersAsync()
+    {
+        airlineId = null;
+        airlines = [];
+        airplaneId = null;
+        airplanes = [];
+        number = null;
+        flightNumbers = [];
+        validationMessage = null;
+
+        if (!HasSelectedSchedule)
+        {
+            return;
+        }
+
+        isAirlinesLoading = true;
+        try
+        {
+            airlines = await FlightsClient.ListAirlinesAsync(
+                originAirportId!.Value,
+                destinationAirportId!.Value,
+                departureDate!.Value,
+                CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar las aerolíneas para esa ruta y fecha.";
+        }
+        finally
+        {
+            isAirlinesLoading = false;
+        }
+
+        await LoadFlightNumbersAsync();
+    }
+
     private async Task LoadAirplanesAsync()
     {
         airplaneId = null;
         airplanes = [];
         validationMessage = null;
 
-        if (airlineId is null)
+        if (airlineId is null || !HasSelectedSchedule)
         {
             await LoadFlightNumbersAsync();
             return;
@@ -268,6 +352,9 @@
         {
             airplanes = await FlightsClient.ListAirplanesAsync(
                 airlineId.Value,
+                originAirportId!.Value,
+                destinationAirportId!.Value,
+                departureDate!.Value,
                 CancellationToken.None);
         }
         catch (HttpRequestException)
@@ -288,7 +375,7 @@
         flightNumbers = [];
         validationMessage = null;
 
-        if (!HasSelectedRoute)
+        if (!HasSelectedSchedule)
         {
             return;
         }

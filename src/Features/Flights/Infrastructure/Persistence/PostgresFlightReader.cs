@@ -49,10 +49,36 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+    public async Task<IReadOnlyList<DateOnly>> ListDepartureDatesAsync(
+        int originAirportId,
+        int destinationAirportId,
         CancellationToken cancellationToken)
     {
+        var dates = await dbContext.Flights
+            .AsNoTracking()
+            .Where(flight =>
+                flight.OriginAirportId == originAirportId &&
+                flight.DestinationAirportId == destinationAirportId)
+            .Select(flight => flight.Departure.Date)
+            .Distinct()
+            .OrderBy(date => date)
+            .ToListAsync(cancellationToken);
+
+        return dates.Select(DateOnly.FromDateTime).ToArray();
+    }
+
+    public async Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        FlightRouteFilter route,
+        CancellationToken cancellationToken)
+    {
+        var start = new DateTimeOffset(route.DepartureDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var end = start.AddDays(1);
         var availableAirlineIds = dbContext.Flights
+            .Where(flight =>
+                flight.OriginAirportId == route.OriginAirportId &&
+                flight.DestinationAirportId == route.DestinationAirportId &&
+                flight.Departure >= start &&
+                flight.Departure < end)
             .Select(flight => flight.AirlineId)
             .Distinct();
 
@@ -69,10 +95,18 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
 
     public async Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
         short airlineId,
+        FlightRouteFilter route,
         CancellationToken cancellationToken)
     {
+        var start = new DateTimeOffset(route.DepartureDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var end = start.AddDays(1);
         var availableAirplaneIds = dbContext.Flights
-            .Where(flight => flight.AirlineId == airlineId)
+            .Where(flight =>
+                flight.OriginAirportId == route.OriginAirportId &&
+                flight.DestinationAirportId == route.DestinationAirportId &&
+                flight.Departure >= start &&
+                flight.Departure < end &&
+                flight.AirlineId == airlineId)
             .Select(flight => flight.AirplaneId)
             .Distinct();
 

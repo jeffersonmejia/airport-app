@@ -10,11 +10,18 @@ public interface IFlightReader
         int? originAirportId,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<DateOnly>> ListDepartureDatesAsync(
+        int originAirportId,
+        int destinationAirportId,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        FlightRouteFilter route,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
         short airlineId,
+        FlightRouteFilter route,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<string>> ListFlightNumbersAsync(

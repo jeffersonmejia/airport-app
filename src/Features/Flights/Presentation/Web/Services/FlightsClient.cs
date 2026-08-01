@@ -37,17 +37,33 @@ public sealed class FlightsClient(HttpClient httpClient)
             cancellationToken) ?? [];
     }
 
+    public async Task<IReadOnlyCollection<DateOnly>> ListDepartureDatesAsync(
+        int originAirportId,
+        int destinationAirportId,
+        CancellationToken cancellationToken) =>
+        await httpClient.GetFromJsonAsync<IReadOnlyCollection<DateOnly>>(
+            $"api/flights/dates?originAirportId={originAirportId}&destinationAirportId={destinationAirportId}",
+            cancellationToken) ?? [];
+
     public async Task<IReadOnlyCollection<AirlineOptionViewModel>> ListAirlinesAsync(
+        int originAirportId,
+        int destinationAirportId,
+        DateOnly departureDate,
         CancellationToken cancellationToken) =>
         await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirlineOptionViewModel>>(
-            "api/flights/airlines",
+            $"api/flights/airlines?originAirportId={originAirportId}" +
+            $"&destinationAirportId={destinationAirportId}&departureDate={departureDate:yyyy-MM-dd}",
             cancellationToken) ?? [];
 
     public async Task<IReadOnlyCollection<AirplaneOptionViewModel>> ListAirplanesAsync(
         short airlineId,
+        int originAirportId,
+        int destinationAirportId,
+        DateOnly departureDate,
         CancellationToken cancellationToken) =>
         await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirplaneOptionViewModel>>(
-            $"api/flights/airplanes?airlineId={airlineId}",
+            $"api/flights/airplanes?airlineId={airlineId}&originAirportId={originAirportId}" +
+            $"&destinationAirportId={destinationAirportId}&departureDate={departureDate:yyyy-MM-dd}",
             cancellationToken) ?? [];
 
     public async Task<IReadOnlyCollection<string>> ListFlightNumbersAsync(

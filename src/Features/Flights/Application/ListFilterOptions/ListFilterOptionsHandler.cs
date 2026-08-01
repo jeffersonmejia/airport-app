@@ -4,16 +4,27 @@ namespace Airport.Features.Flights.Application.ListFilterOptions;
 
 public sealed class ListFilterOptionsHandler(IFlightReader flightReader)
 {
-    public async Task<IReadOnlyCollection<AirlineOptionResponse>> ListAirlinesAsync(
+    public Task<IReadOnlyList<DateOnly>> ListDepartureDatesAsync(
+        int originAirportId,
+        int destinationAirportId,
         CancellationToken cancellationToken) =>
-        (await flightReader.ListAirlinesAsync(cancellationToken))
+        flightReader.ListDepartureDatesAsync(
+            originAirportId,
+            destinationAirportId,
+            cancellationToken);
+
+    public async Task<IReadOnlyCollection<AirlineOptionResponse>> ListAirlinesAsync(
+        FlightRouteFilter route,
+        CancellationToken cancellationToken) =>
+        (await flightReader.ListAirlinesAsync(route, cancellationToken))
             .Select(option => new AirlineOptionResponse(option.Id, option.Iata, option.Name))
             .ToArray();
 
     public async Task<IReadOnlyCollection<AirplaneOptionResponse>> ListAirplanesAsync(
         short airlineId,
+        FlightRouteFilter route,
         CancellationToken cancellationToken) =>
-        (await flightReader.ListAirplanesAsync(airlineId, cancellationToken))
+        (await flightReader.ListAirplanesAsync(airlineId, route, cancellationToken))
             .Select(option => new AirplaneOptionResponse(option.Id, option.Model, option.Capacity))
             .ToArray();
 

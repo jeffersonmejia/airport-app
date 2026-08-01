@@ -24,20 +24,34 @@ public sealed class CachedFlightReader(
             CachePolicy.QueryLifetime,
             cancellationToken);
 
-    public Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+    public Task<IReadOnlyList<DateOnly>> ListDepartureDatesAsync(
+        int originAirportId,
+        int destinationAirportId,
         CancellationToken cancellationToken) =>
         cache.GetOrCreateAsync(
-            "flights:filter-options:airlines",
-            innerReader.ListAirlinesAsync,
+            $"flights:filter-options:dates:{originAirportId}:{destinationAirportId}",
+            token => innerReader.ListDepartureDatesAsync(originAirportId, destinationAirportId, token),
+            CachePolicy.QueryLifetime,
+            cancellationToken);
+
+    public Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        FlightRouteFilter route,
+        CancellationToken cancellationToken) =>
+        cache.GetOrCreateAsync(
+            $"flights:filter-options:airlines:{route.OriginAirportId}:" +
+            $"{route.DestinationAirportId}:{route.DepartureDate:yyyy-MM-dd}",
+            token => innerReader.ListAirlinesAsync(route, token),
             CachePolicy.QueryLifetime,
             cancellationToken);
 
     public Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
         short airlineId,
+        FlightRouteFilter route,
         CancellationToken cancellationToken) =>
         cache.GetOrCreateAsync(
-            $"flights:filter-options:airplanes:airline:{airlineId}",
-            token => innerReader.ListAirplanesAsync(airlineId, token),
+            $"flights:filter-options:airplanes:{route.OriginAirportId}:" +
+            $"{route.DestinationAirportId}:{route.DepartureDate:yyyy-MM-dd}:airline:{airlineId}",
+            token => innerReader.ListAirplanesAsync(airlineId, route, token),
             CachePolicy.QueryLifetime,
             cancellationToken);
 
