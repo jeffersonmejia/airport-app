@@ -256,60 +256,30 @@ sequenceDiagram
     actor C as Cliente
     participant W as Airport.Web
     participant API as Airport.Api
-    participant CH as CreatePayPalOrderHandler
-    participant S as IPaymentOrderStore
+    participant P as PayPal Sandbox
     participant DB as PostgreSQL
-    participant G as PayPal Sandbox
-    participant PH as CapturePayPalOrderHandler
 
-    C->>W: Selecciona pagar una orden propia
-    W->>API: POST /api/payments/paypal/orders<br/>cookie + orderId + idempotencyKey
-    API->>CH: HandleAsync(command)
-    CH->>S: FindByIdempotencyKeyAsync(key, userId)
-    S->>DB: Buscar pago por clave y propietario
-    DB-->>S: Pago existente o vacío
-
-    alt Solicitud ya registrada para la misma orden
-        S-->>CH: Pago existente
-        CH-->>API: providerOrderId, estado y approvalUrl
-    else Clave libre
-        CH->>S: FindPayableAsync(orderId, userId)
-        S->>DB: Orden propia con estado PENDING_PAYMENT
-        DB-->>S: Monto y moneda calculados por el servidor
-        S-->>CH: Orden pagable
-        CH->>G: Crear orden con monto, moneda y request-id
-        G-->>CH: providerOrderId y approvalUrl
-        CH->>S: RecordCreatedAsync(...)
-        S->>DB: INSERT payment CREATED
-        CH-->>API: Datos de aprobación
-    end
-
+    C->>W: Pagar orden
+    W->>API: Solicitar pago de la orden
+    API->>DB: Validar propietario, estado e idempotencia
+    DB-->>API: Orden pendiente con monto y moneda
+    API->>P: Crear orden PayPal
+    P-->>API: URL de aprobación
     API-->>W: URL de aprobación
-    W-->>C: Redirige a PayPal
-    C->>G: Autoriza el pago Sandbox
-    G-->>W: Retorna con providerOrderId
-    W->>API: POST /api/payments/paypal/orders/{id}/capture<br/>cookie + idempotencyKey
-    API->>PH: HandleAsync(command)
-    PH->>S: FindByProviderOrderAsync(id, userId)
-    S->>DB: Buscar pago asociado al usuario
-    DB-->>S: Pago esperado
-    PH->>G: Capturar orden
-    G-->>PH: status, captureId, amount, currency
+    W-->>C: Redirigir a PayPal
+    C->>P: Aprobar pago
+    P-->>W: Retornar a la aplicación
+    W->>API: Solicitar captura
+    API->>P: Capturar y consultar resultado
+    P-->>API: Estado, monto, moneda y captureId
 
-    alt Estado no COMPLETED o monto/moneda diferentes
-        PH-->>API: Error de negocio seguro
-        API-->>W: Rechazo<br/>No se emite boleto
+    alt Captura inválida
+        API-->>W: Rechazar pago y no emitir boleto
     else Captura válida
-        PH->>S: CompleteAsync(payment, captureId, amount, currency)
-        S->>DB: BEGIN TRANSACTION SERIALIZABLE
-        S->>DB: Actualizar payment a COMPLETED
-        S->>DB: Actualizar order a PAID
-        S->>DB: Crear purchased_ticket solo si no existe
-        S->>DB: COMMIT
-        S-->>PH: Compra confirmada
-        PH-->>API: Estado COMPLETED
-        API-->>W: Confirmación y acceso al comprobante
-        W-->>C: Boleto y comprobante
+        API->>DB: Registrar pago y emitir un único boleto
+        DB-->>API: Compra confirmada
+        API-->>W: Comprobante
+        W-->>C: Mostrar boleto e historial
     end
 ```
 
