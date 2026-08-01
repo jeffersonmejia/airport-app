@@ -7,6 +7,10 @@
 > **Regla de uso:** un requisito solo se marca como cumplido cuando existe implementación funcional, evidencia verificable y documentación correspondiente.
 >
 > **Estructura:** este archivo es la lista maestra y **redirige a los subdocumentos** de `docs/requirements/`, donde viven los checklists detallados por área. La documentación de entrega (informe, repositorio, sustentación y evidencias) se mantiene aquí, en las secciones 4 a 9.
+>
+> **Alcance:** se implementa exclusivamente el ejercicio asignado, **Tipo 1: Compra de boletos**. No se agregarán módulos ni funcionalidades pertenecientes a otros tipos del examen.
+>
+> **Base de datos:** la instalación, importación y comprobación inicial de Airport ya están cumplidas y se omiten del trabajo pendiente. La aplicación sí debe seguir utilizando esa base existente y respetar los requisitos de acceso, entidades y persistencia propios del Tipo 1.
 
 ---
 
@@ -41,7 +45,26 @@
 
 ## 2. Resultado final obligatorio
 
-La aplicación debe ser un sistema web funcional de compra de boletos aeroportuarios que permita:
+### 2.1 Flujo específico del Tipo 1: Compra de boletos
+
+La aplicación debe permitir:
+
+- [ ] Seleccionar un aeropuerto de origen.
+- [ ] Seleccionar un aeropuerto de destino.
+- [ ] Elegir una fecha.
+- [ ] Buscar vuelos disponibles.
+- [ ] Aplicar filtros.
+- [ ] Paginar los resultados.
+- [ ] Consultar el detalle del vuelo.
+- [ ] Seleccionar una tarifa.
+- [ ] Crear una orden.
+- [ ] Procesar el pago.
+- [ ] Registrar el boleto adquirido.
+- [ ] Mostrar un comprobante.
+
+### 2.2 Requisitos transversales ya existentes
+
+Se conservan los requisitos generales del examen que respaldan y aseguran el flujo anterior:
 
 - [ ] Registrar usuarios.
 - [ ] Iniciar sesión.
@@ -50,22 +73,13 @@ La aplicación debe ser un sistema web funcional de compra de boletos aeroportua
 - [ ] Diferenciar los roles `Administrador` y `Cliente`.
 - [ ] Proteger rutas y operaciones con autorización.
 - [ ] Consultar datos reales de la base Airport.
-- [ ] Seleccionar un aeropuerto de origen.
-- [ ] Seleccionar un aeropuerto de destino.
-- [ ] Elegir una fecha de viaje.
-- [ ] Buscar vuelos disponibles.
-- [ ] Aplicar búsqueda, filtros y ordenamiento.
-- [ ] Paginar físicamente los resultados desde PostgreSQL.
-- [ ] Consultar el detalle de un vuelo.
-- [ ] Seleccionar una tarifa.
-- [ ] Crear una orden pendiente.
 - [ ] Registrar el detalle de la orden.
-- [ ] Procesar el pago mediante PayPal Sandbox o PayPhone de pruebas.
+- [ ] Aplicar búsqueda y ordenamiento al listado de vuelos.
+- [ ] Paginar físicamente los resultados desde PostgreSQL.
+- [ ] Procesar el pago mediante PayPal Sandbox o PayPhone en pruebas.
 - [ ] Verificar el resultado del pago en el backend.
-- [ ] Registrar el boleto adquirido.
 - [ ] Registrar el pago y la transacción en PostgreSQL.
 - [ ] Impedir transacciones duplicadas.
-- [ ] Mostrar un comprobante.
 - [ ] Mostrar el historial individual del cliente.
 - [ ] Permitir al administrador revisar órdenes, pagos y transacciones.
 
@@ -79,11 +93,14 @@ fuente de verdad de su área y allí se marcan los checklists.
 | Subdocumento | Contenido | Cubre las secciones |
 |---|---|---|
 | [001_contexto_y_stack.md](001_contexto_y_stack.md) | Identificación, resultado final, stack mínimo, capacidades técnicas, funcionalidades comunes y criterio de cumplimiento | 1-3, 14, 28 |
-| [002_base_de_datos_y_efcore.md](002_base_de_datos_y_efcore.md) | Base de datos Airport, entidades del Tipo 1, EF Core, Database First, migraciones y contextos | 4-6 |
+| [002_base_de_datos_y_efcore.md](002_base_de_datos_y_efcore.md) | Base Airport ya preparada, entidades exclusivas del Tipo 1, EF Core, Database First, migraciones y contextos | 4-6 |
 | [003_organizacion_identity_y_seguridad.md](003_organizacion_identity_y_seguridad.md) | Organización del proyecto (hexagonal, vertical slices y screaming architecture), Identity, roles y seguridad | 7-8, 16 |
 | [004_flujo_compra_y_reglas.md](004_flujo_compra_y_reglas.md) | Requerimientos funcionales RF-01..14, reglas de negocio y estados | 9, 13, 15 |
 | [005_linq_paginacion_y_pago.md](005_linq_paginacion_y_pago.md) | Consultas LINQ, paginación física y flujo de pago | 10-12 |
-| [006_pruebas_y_estrategia.md](006_pruebas_y_estrategia.md) | Pruebas obligatorias, tests unitarios, rúbrica 20/20, plan de implementación por fases, matriz de trazabilidad y puerta de aprobación | 17, 22-24, 27 |
+| [006_pruebas_y_estrategia.md](006_pruebas_y_estrategia.md) | Última etapa: pruebas obligatorias, tests unitarios, rúbrica 20/20, matriz de trazabilidad y puerta de aprobación | 17, 22-24, 27 |
+
+> [!IMPORTANT]
+> El subdocumento `006_pruebas_y_estrategia.md` se aborda de último, después de completar el trabajo funcional definido en `001` a `005`. Esto no impide realizar verificaciones técnicas puntuales durante el desarrollo.
 
 > [!NOTE]
 > La división se hizo en `docs:` commit `1ed6118`; los checklists ya no se duplican en este archivo.
@@ -389,7 +406,7 @@ Preparar respuestas sobre:
 - [ ] Creación de solicitud de pago.
 - [ ] Verificación del pago.
 - [ ] Registro de `Payment`.
-- [ ] Registro de `TransactionHistory`.
+- [ ] Registro del pago y su identificador de transacción en `Payments`.
 - [ ] Restricción de duplicados.
 - [ ] Registro del boleto.
 - [ ] Autorización del administrador.

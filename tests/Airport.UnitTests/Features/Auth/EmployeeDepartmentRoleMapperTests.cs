@@ -6,11 +6,11 @@ public sealed class EmployeeDepartmentRoleMapperTests
 {
     public static TheoryData<string, string[]> DepartmentRoles => new()
     {
-        { "Marketing", [ApplicationRoles.Marketing] },
-        { "Buchhaltung", [ApplicationRoles.Accounting] },
-        { "Management", [ApplicationRoles.Management, ApplicationRoles.Admin] },
-        { "Logistik", [ApplicationRoles.Logistics] },
-        { "Flugfeld", [ApplicationRoles.AirfieldOperations] }
+        { "Marketing", [ApplicationRoles.Client] },
+        { "Buchhaltung", [ApplicationRoles.Client] },
+        { "Management", [ApplicationRoles.Client, ApplicationRoles.Admin] },
+        { "Logistik", [ApplicationRoles.Client] },
+        { "Flugfeld", [ApplicationRoles.Client] }
     };
 
     [Theory]

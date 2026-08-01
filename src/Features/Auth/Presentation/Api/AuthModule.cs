@@ -55,13 +55,7 @@ public static class AuthModule
                 };
             });
         services.AddAuthorizationBuilder()
-            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin))
-            .AddPolicy("BookingsRead", policy => policy.RequireRole(
-                ApplicationRoles.Accounting, ApplicationRoles.Admin))
-            .AddPolicy("BookingsWrite", policy => policy.RequireRole(
-                ApplicationRoles.Accounting, ApplicationRoles.Admin))
-            .AddPolicy("BookingsCancel", policy => policy.RequireRole(
-                ApplicationRoles.Accounting, ApplicationRoles.Admin));
+            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin));
 
         return services;
     }

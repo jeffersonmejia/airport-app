@@ -6,41 +6,15 @@
 
 ## 1. Base de datos Airport
 
-### 1.1 Instalación obligatoria
+### 1.1 Estado de preparación
 
-- [ ] Descargar la base demostrativa Airport desde Postgres Pro.
-- [ ] Instalar, como mínimo, la versión correspondiente a tres meses.
-- [ ] Utilizar como referencia mínima `demo-20250901-3m.sql.gz`.
-- [ ] Descomprimir el archivo `.gz`.
-- [ ] Obtener el script `.sql`.
-- [ ] Importar el script mediante `psql`.
-- [ ] No abrir el archivo completo con Query Tool de pgAdmin.
-- [ ] Usar `ON_ERROR_STOP=1`.
-- [ ] Actualizar el listado de bases de datos en pgAdmin.
-- [ ] Confirmar la creación de la base.
-- [ ] Confirmar la existencia del esquema `bookings`.
-- [ ] Confirmar que la tabla `bookings.flights` contiene datos.
+La instalación, importación y verificación inicial de la base Airport ya fueron
+completadas. Estas tareas se dan por cumplidas y se omiten del plan pendiente; no se
+debe volver a descargar, restaurar ni recrear la base.
 
-#### Comando de referencia
-
-```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" `
--h localhost `
--p 5432 `
--U postgres `
--d postgres `
--v ON_ERROR_STOP=1 `
--f "C:\BD\airport\demo-20250901-3m.sql"
-```
-
-#### Verificación mínima
-
-```sql
-SELECT current_database();
-
-SELECT COUNT(*)
-FROM bookings.flights;
-```
+- [x] Base Airport instalada e importada.
+- [x] Esquema y datos iniciales verificados.
+- [ ] Mantener funcional la conexión de la aplicación con la base existente.
 
 ### 1.2 Restricciones de uso
 
@@ -71,18 +45,12 @@ FROM bookings.flights;
 - [ ] `OrderDetails`
 - [ ] `PurchasedTickets`
 - [ ] `Payments`
-- [ ] `TransactionHistory`
 
-### 2.3 Tablas adicionales mínimas equivalentes
+No se agrega ninguna tabla adicional fuera de esta lista: el identificador y el
+estado de la transacción se persisten en `Payments`, cubriendo el registro y la
+idempotencia del pago sin ampliar el alcance del Tipo 1.
 
-El proyecto debe crear tablas equivalentes a:
-
-- [ ] `Orders`
-- [ ] `OrderDetails`
-- [ ] `Payments`
-- [ ] `TransactionHistory`
-
-### 2.4 Campos mínimos de `Payments`
+### 2.3 Campos mínimos de `Payments`
 
 La tabla de pagos debe contener, como mínimo:
 

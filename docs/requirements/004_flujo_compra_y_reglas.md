@@ -132,6 +132,11 @@ Ejemplos:
 - [ ] Mostrar identificador de transacción.
 - [ ] Mostrar fecha de confirmación.
 
+## 2. Requisitos transversales conservados
+
+Los siguientes requisitos generales ya existentes se mantienen como soporte del
+flujo de compra, pero no amplían el ejercicio a otro tipo del examen.
+
 ### RF-13. Historial del cliente
 
 - [ ] Mostrar únicamente las operaciones del usuario autenticado.
@@ -153,7 +158,7 @@ Ejemplos:
 
 ---
 
-## 2. Reglas de negocio obligatorias
+## 3. Reglas de negocio obligatorias
 
 La aplicación debe impedir:
 
@@ -169,7 +174,7 @@ La aplicación debe impedir:
 - [ ] Alterar el precio desde el navegador.
 - [ ] Publicar credenciales en GitHub.
 
-### 2.1 Validaciones específicas recomendadas para Tipo 1
+### 3.1 Validaciones específicas recomendadas para Tipo 1
 
 - [ ] Origen obligatorio.
 - [ ] Destino obligatorio.
@@ -186,7 +191,7 @@ La aplicación debe impedir:
 
 ---
 
-## 3. Estados mínimos
+## 4. Estados mínimos
 
 Las órdenes y pagos deben manejar, como mínimo:
 
@@ -196,7 +201,7 @@ Las órdenes y pagos deben manejar, como mínimo:
 - [ ] `Rechazado`
 - [ ] `Fallido`
 
-### 3.1 Transiciones que deben controlarse
+### 4.1 Transiciones que deben controlarse
 
 - [ ] Orden nueva → `Pendiente`.
 - [ ] Pago verificado y aprobado → orden `Aprobado`.

@@ -3,41 +3,31 @@
 > Este archivo forma parte de la división de `requirements.md`.
 > Se omite la parte de documentación (informe, README, sustentación, evidencias) por gestión del estudiante.
 > **Un requisito solo se marca como cumplido cuando existe implementación funcional, evidencia verificable y documentación correspondiente.**
-
----
-
-## 1. Identificación del examen
-
-| Campo | Valor |
-|---|---|
-| Estudiante | Jefferson Paul Mejía Chávez |
-| Modalidad | Individual |
-| Tipo asignado | **Tipo 1** |
-| Ejercicio | **Compra de boletos** |
-| Base de datos | **Airport de Postgres Pro** |
-| Pasarela | PayPal Sandbox o PayPhone en ambiente de pruebas |
-| Apertura | Viernes 31 de julio de 2026, 07:00 |
-| Entrega | Domingo 2 de agosto de 2026, 17:00 |
-| Puntaje | 20 puntos |
-| Entrega en plataforma | Un único archivo PDF |
-| Tamaño máximo | 20 MB |
-| Repositorio | GitHub público |
-
-### Datos todavía por completar
-
-- [ ] Pasarela seleccionada: `________________________`
-- [ ] Fecha de realización: `________________________`
-- [ ] URL pública de GitHub: `________________________`
-- [ ] URL o referencia del video de sustentación, cuando corresponda: `________________________`
-
-> [!CAUTION]
-> No se permite cambiar el ejercicio asignado.
+> **Alcance cerrado:** solo se implementa el Tipo 1, Compra de boletos. Se excluye cualquier funcionalidad perteneciente a los demás tipos del examen.
+> **Base existente:** la instalación e importación inicial de Airport ya están cumplidas; no forman parte del trabajo pendiente.
 
 ---
 
 ## 2. Resultado final obligatorio
 
-La aplicación debe ser un sistema web funcional de compra de boletos aeroportuarios que permita:
+### 2.1 Flujo específico del Tipo 1
+
+La aplicación debe permitir:
+
+- [ ] Seleccionar un aeropuerto de origen.
+- [ ] Seleccionar un aeropuerto de destino.
+- [ ] Elegir una fecha.
+- [ ] Buscar vuelos disponibles.
+- [ ] Aplicar filtros.
+- [ ] Paginar los resultados.
+- [ ] Consultar el detalle del vuelo.
+- [ ] Seleccionar una tarifa.
+- [ ] Crear una orden.
+- [ ] Procesar el pago.
+- [ ] Registrar el boleto adquirido.
+- [ ] Mostrar un comprobante.
+
+### 2.2 Requisitos transversales ya existentes
 
 - [ ] Registrar usuarios.
 - [ ] Iniciar sesión.
@@ -46,22 +36,13 @@ La aplicación debe ser un sistema web funcional de compra de boletos aeroportua
 - [ ] Diferenciar los roles `Administrador` y `Cliente`.
 - [ ] Proteger rutas y operaciones con autorización.
 - [ ] Consultar datos reales de la base Airport.
-- [ ] Seleccionar un aeropuerto de origen.
-- [ ] Seleccionar un aeropuerto de destino.
-- [ ] Elegir una fecha de viaje.
-- [ ] Buscar vuelos disponibles.
-- [ ] Aplicar búsqueda, filtros y ordenamiento.
-- [ ] Paginar físicamente los resultados desde PostgreSQL.
-- [ ] Consultar el detalle de un vuelo.
-- [ ] Seleccionar una tarifa.
-- [ ] Crear una orden pendiente.
 - [ ] Registrar el detalle de la orden.
-- [ ] Procesar el pago mediante PayPal Sandbox o PayPhone de pruebas.
+- [ ] Aplicar búsqueda y ordenamiento al listado de vuelos.
+- [ ] Paginar físicamente los resultados desde PostgreSQL.
+- [ ] Procesar el pago mediante PayPal Sandbox o PayPhone en pruebas.
 - [ ] Verificar el resultado del pago en el backend.
-- [ ] Registrar el boleto adquirido.
 - [ ] Registrar el pago y la transacción en PostgreSQL.
 - [ ] Impedir transacciones duplicadas.
-- [ ] Mostrar un comprobante.
 - [ ] Mostrar el historial individual del cliente.
 - [ ] Permitir al administrador revisar órdenes, pagos y transacciones.
 
@@ -71,10 +52,10 @@ La aplicación debe ser un sistema web funcional de compra de boletos aeroportua
 
 ### 3.1 Stack mínimo
 
-- [ ] ASP.NET Core MVC.
+- [ ] ASP.NET Core .NET 10 para la API HTTP y Blazor WebAssembly para la interfaz web.
 - [ ] Entity Framework Core.
 - [ ] PostgreSQL.
-- [ ] Base de datos Airport.
+- [x] Base de datos Airport instalada e importada previamente.
 - [ ] Proveedor Npgsql.
 - [ ] ASP.NET Core Identity.
 - [ ] Cookies de autenticación.

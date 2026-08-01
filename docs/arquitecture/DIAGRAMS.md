@@ -272,27 +272,25 @@ CORS y demás límites operativos son políticas o configuración, no secretos.
 
 ```mermaid
 flowchart TB
-    Flights["Flights — implementada"] --> flight
-    Flights --> flight_log
-    Flights --> flightschedule
+    Flights["Flights"] --> airports_data
+    Flights --> flights
+    Flights --> routes
 
-    Auth["Auth — infraestructura JWT;<br/>persistencia pendiente"] -.-> employee
+    Bookings["Bookings"] --> bookings
+    Bookings --> tickets
+    Bookings --> ticket_flights
+    Bookings --> Orders
+    Bookings --> OrderDetails
+    Bookings --> PurchasedTickets
+    Bookings --> Payments
 
-    Airports["Airports — futura"] -.-> airport
-    Airports -.-> airport_geo
-    Airports -.-> airport_reachable
-
-    Airlines["Airlines — futura"] -.-> airline
-    Fleet["Fleet — futura"] -.-> airplane
-    Fleet -.-> airplane_type
-
-    Bookings["Bookings — futura"] -.-> booking
-    Passengers["Passengers — futura"] -.-> passenger
-    Passengers -.-> passengerdetails
-    Employees["Employees — futura"] -.-> employee
-    Weather["Weather — futura"] -.-> weatherdata
+    Auth["Auth"] --> identity_store["Persistencia de usuarios y sesiones"]
+    Administration["Administration"] -. consulta .-> Orders
+    Administration -. consulta .-> Payments
 ```
 
-Las líneas continuas representan responsabilidad implementada; las discontinuas,
-responsabilidad planificada. Una relación SQL no autoriza a una feature a acceder a
-los detalles internos de otra.
+La vista se limita al Tipo 1: Compra de boletos y a los requisitos transversales ya
+existentes. No se planifican features de otros tipos del examen. Las líneas continuas
+representan propiedad o uso directo; las discontinuas, consultas mediante los puertos
+del feature propietario. Una relación SQL no autoriza a una feature a acceder a los
+detalles internos de otra.

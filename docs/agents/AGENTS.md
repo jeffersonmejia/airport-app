@@ -27,4 +27,9 @@
 
 ## Versionamiento
 
-debes poner en agents, que se debe mandar commit semantico español, con feat: docs: ... fix, solo esos tres, ah y refactor: ... y solo si yo lo digo.
+- Los commits se crean únicamente cuando el usuario lo solicita de forma explícita.
+- Los mensajes deben estar en español y seguir Conventional Commits.
+- Los únicos prefijos permitidos son `feat:`, `fix:`, `docs:` y `refactor:`.
+- Este repositorio usa el remoto GitHub configurado mediante SSH; las credenciales SSH del usuario ya están preparadas.
+- Cuando el usuario solicite publicar, se usa Git directamente: `git add`, commit semántico y `git push origin main`.
+- No se requiere GitHub CLI (`gh`) ni se crea un pull request, salvo que el usuario lo pida expresamente.

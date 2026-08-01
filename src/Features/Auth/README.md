@@ -9,10 +9,11 @@ Slices previstos:
 - `Logout`: invalidar la sesión activa cuando el mecanismo elegido lo permita.
 - `GetCurrentUser`: devolver la identidad autenticada y sus permisos.
 
-Se usan access tokens de 15 minutos, sin refresh token por ahora. Los departamentos
-se traducen a roles de aplicación y `Management` recibe además `Admin`. El login
-mantiene compatibilidad temporal con el hash MD5 del dump; no compara ni almacena
-contraseñas en texto plano y ese algoritmo deberá migrarse antes de producción.
+Se usan access tokens de 15 minutos, sin refresh token por ahora. La compatibilidad
+temporal con los usuarios del dump traduce `Management` a los roles `Client` y
+`Admin`; los demás departamentos reciben `Client`. El login mantiene compatibilidad
+temporal con el hash MD5 del dump; no compara ni almacena contraseñas en texto plano
+y ese algoritmo deberá migrarse antes de producción.
 
 Reglas de dependencia:
 

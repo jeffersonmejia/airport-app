@@ -2,7 +2,6 @@ using Airport.Caching;
 using Airport.Api.ErrorHandling;
 using Airport.Features.Administration.Presentation.Api;
 using Airport.Features.Auth.Presentation.Api;
-using Airport.Features.Bookings.Presentation.Api;
 using Airport.Features.Flights.Presentation.Api;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +24,6 @@ builder.Services.AddApiErrorHandling();
 builder.Services.AddAirportCaching();
 builder.Services.AddAuthModule(builder.Configuration, connectionString);
 builder.Services.AddAdministrationModule(connectionString);
-builder.Services.AddBookingsModule(connectionString);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AirportWeb", policy =>
@@ -57,6 +55,5 @@ app.MapGet("/", () => Results.Ok(new
 app.MapFlightsModule();
 app.MapAuthModule();
 app.MapAdministrationModule();
-app.MapBookingsModule();
 
 app.Run();

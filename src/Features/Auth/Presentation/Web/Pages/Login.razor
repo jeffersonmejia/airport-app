@@ -10,9 +10,9 @@
     <div class="login-card">
         <div class="login-card__intro">
             <span class="login-card__icon material-symbols-rounded" aria-hidden="true">shield_person</span>
-            <span class="eyebrow">Acceso de empleados</span>
+            <span class="eyebrow">Acceso de usuarios</span>
             <h1 id="login-title">Bienvenido de vuelta</h1>
-            <p>Ingresa con las credenciales asignadas a tu departamento.</p>
+            <p>Ingresa con tus credenciales para consultar vuelos y gestionar tus compras.</p>
         </div>
 
         @if (AuthSession.IsAuthenticated)
@@ -29,13 +29,9 @@
                 {
                     <a class="primary-button" href="/admin">Ir al panel administrativo</a>
                 }
-                else if (AuthSession.IsInRole("Accounting"))
-                {
-                    <a class="primary-button" href="/bookings">Ir al módulo de reservas</a>
-                }
                 else
                 {
-                    <a class="primary-button" href="/">Ir al inicio</a>
+                    <a class="primary-button" href="/">Explorar vuelos</a>
                 }
                 <button class="text-button" type="button" @onclick="SignOut">Cerrar sesión</button>
             </div>
@@ -93,7 +89,7 @@
         <span class="material-symbols-rounded" aria-hidden="true">info</span>
         <div>
             <strong>¿Necesitas una cuenta de prueba?</strong>
-            <p>Las credenciales por rol están documentadas en <code>docs/users.md</code>.</p>
+            <p>Las credenciales por rol están documentadas en <code>docs/users/users.md</code>.</p>
         </div>
     </aside>
 </section>

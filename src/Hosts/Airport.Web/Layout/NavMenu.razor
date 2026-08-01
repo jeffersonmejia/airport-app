@@ -7,33 +7,11 @@
         <span class="material-symbols-rounded" aria-hidden="true">flight</span>
         <span>Vuelos</span>
     </NavLink>
-    <span class="nav-link nav-link--disabled" aria-disabled="true" title="Próximamente">
-        <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
-        <span>Aeropuertos</span>
-        <small>Pronto</small>
-    </span>
-    <span class="nav-link nav-link--disabled" aria-disabled="true" title="Próximamente">
-        <span class="material-symbols-rounded" aria-hidden="true">confirmation_number</span>
-        <span>Reservas</span>
-        <small>Pronto</small>
-    </span>
-    <span class="nav-link nav-link--disabled" aria-disabled="true" title="Próximamente">
-        <span class="material-symbols-rounded" aria-hidden="true">partly_cloudy_day</span>
-        <span>Clima</span>
-        <small>Pronto</small>
-    </span>
     @if (AuthSession.IsAdmin)
     {
         <NavLink class="nav-link" href="admin">
             <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
             <span>Administración</span>
-        </NavLink>
-    }
-    @if (AuthSession.IsAdmin || AuthSession.IsInRole("Accounting"))
-    {
-        <NavLink class="nav-link" href="bookings">
-            <span class="material-symbols-rounded" aria-hidden="true">confirmation_number</span>
-            <span>Reservas</span>
         </NavLink>
     }
     <NavLink class="nav-link" href="login">

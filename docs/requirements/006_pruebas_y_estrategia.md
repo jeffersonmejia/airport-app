@@ -2,6 +2,9 @@
 
 > Este archivo forma parte de la división de `requirements.md`.
 
+> [!IMPORTANT]
+> Este subdocumento se ejecuta de último, una vez completada la implementación funcional definida en `001` a `005`. Las compilaciones y verificaciones puntuales pueden realizarse durante el desarrollo, pero la etapa integral de pruebas, trazabilidad y aprobación corresponde al cierre.
+
 ---
 
 ## 1. Pruebas obligatorias
@@ -10,7 +13,7 @@ Deben demostrarse y documentarse las siguientes 16 pruebas:
 
 | N.º | Prueba | Resultado exigido | Estado |
 |---:|---|---|---|
-| 1 | Instalación y conexión con Airport | Conexión funcional y consulta real | [ ] |
+| 1 | Conexión con la base Airport existente | Conexión funcional y consulta real | [ ] |
 | 2 | Consulta de datos reales | Datos obtenidos desde Airport | [ ] |
 | 3 | Registro de usuario | Usuario persistido en Identity | [ ] |
 | 4 | Inicio y cierre de sesión | Cookies y sesión funcionales | [ ] |
@@ -166,7 +169,11 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 
 ---
 
-## 4. Plan de implementación recomendado
+## 4. Resumen del orden de implementación
+
+Las fases siguientes resumen el trabajo descrito en `001` a `005`; no convierten a
+`006` en una etapa inicial. Al llegar a este archivo, las fases funcionales 1 a 6
+deben estar terminadas y solo queda ejecutar el cierre de pruebas y entrega.
 
 ### Fase 1. Infraestructura
 
@@ -174,9 +181,8 @@ Deben ejecutarse con `dotnet test` y cubrir, como mínimo:
 - [ ] Configurar `.gitignore`.
 - [ ] Crear la solución con hosts delgados (`Airport.Api`, `Airport.Web`) y `BuildingBlocks`.
 - [ ] Crear el esqueleto hexagonal de las features (Domain, Application, Infrastructure y Presentation) con sus referencias.
-- [ ] Configurar PostgreSQL.
-- [ ] Importar Airport.
-- [ ] Verificar `bookings.flights`.
+- [x] Base Airport instalada, importada y verificada previamente.
+- [ ] Configurar el acceso de la aplicación a PostgreSQL.
 - [ ] Agregar Npgsql dentro de `Infrastructure`.
 - [ ] Generar `AirportContext` en `Infrastructure`.
 - [ ] Configurar Identity en la feature `Auth`.

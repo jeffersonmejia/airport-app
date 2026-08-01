@@ -1,6 +1,5 @@
 ﻿@using Airport.Features.Administration.Presentation.Web
 @using Airport.Features.Auth.Presentation.Web
-@using Airport.Features.Bookings.Presentation.Web
 @using Airport.Features.Flights.Presentation.Web
 
 <Router AppAssembly="@typeof(App).Assembly"
@@ -8,8 +7,7 @@
         {
             typeof(FlightsPresentationAssembly).Assembly,
             typeof(AuthPresentationAssembly).Assembly,
-            typeof(AdministrationPresentationAssembly).Assembly,
-            typeof(BookingsPresentationAssembly).Assembly
+            typeof(AdministrationPresentationAssembly).Assembly
         }"
         NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">

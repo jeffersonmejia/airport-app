@@ -1,7 +1,6 @@
 using Airport.Web;
 using Airport.Features.Administration.Presentation.Web;
 using Airport.Features.Auth.Presentation.Web;
-using Airport.Features.Bookings.Presentation.Web;
 using Airport.Features.Flights.Presentation.Web;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -28,6 +27,5 @@ builder.Services.AddScoped(_ => new HttpClient
 builder.Services.AddFlightsPresentation();
 builder.Services.AddAuthPresentation();
 builder.Services.AddAdministrationPresentation();
-builder.Services.AddBookingsPresentation();
 
 await builder.Build().RunAsync();
