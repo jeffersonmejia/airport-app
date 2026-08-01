@@ -298,7 +298,7 @@ sequenceDiagram
 
     alt Estado no COMPLETED o monto/moneda diferentes
         PH-->>API: Error de negocio seguro
-        API-->>W: Rechazo; no se emite boleto
+        API-->>W: Rechazo<br/>No se emite boleto
     else Captura válida
         PH->>S: CompleteAsync(payment, captureId, amount, currency)
         S->>DB: BEGIN TRANSACTION SERIALIZABLE
