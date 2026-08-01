@@ -6,6 +6,12 @@ public sealed class SearchFlightsValidatorTests
 {
     private readonly SearchFlightsValidator validator = new();
 
+    public static TheoryData<short?, int?> InvalidTransportIds => new()
+    {
+        { (short)0, null },
+        { null, 0 }
+    };
+
     [Fact]
     public void Validate_WithValidPagination_ReturnsNoErrors()
     {
@@ -26,8 +32,7 @@ public sealed class SearchFlightsValidatorTests
     }
 
     [Theory]
-    [InlineData(0, null)]
-    [InlineData(null, 0)]
+    [MemberData(nameof(InvalidTransportIds))]
     public void Validate_WithInvalidTransportIds_ReturnsErrors(short? airlineId, int? airplaneId)
     {
         var query = new SearchFlightsQuery(
