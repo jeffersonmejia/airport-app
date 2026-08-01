@@ -4,5 +4,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- dotnet watch 10.0.301 no normaliza obj\Debug como ruta de Linux al
+         leer manifiestos staticwebassets de proyectos referenciados. -->
+    <BaseIntermediateOutputPath>obj/</BaseIntermediateOutputPath>
   </PropertyGroup>
 </Project>
