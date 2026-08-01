@@ -10,9 +10,9 @@ public sealed class LoginValidator
         {
             errors[nameof(command.Username)] = ["El nombre de usuario es obligatorio."];
         }
-        else if (command.Username.Length > 20)
+        else if (command.Username.Length > 60)
         {
-            errors[nameof(command.Username)] = ["El nombre de usuario no puede superar 20 caracteres."];
+            errors[nameof(command.Username)] = ["El nombre de usuario no puede superar 60 caracteres."];
         }
 
         if (string.IsNullOrEmpty(command.Password))

@@ -59,6 +59,19 @@
                     @(isLoading ? "Creando cuenta…" : "Crear cuenta")
                 </button>
             </EditForm>
+
+            <p class="account-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+
+            @if (googleAvailable)
+            {
+                <div class="login-divider"><span>o</span></div>
+                <a class="google-button" href="@AuthClient.GoogleLoginUrl">
+                    <img class="google-button__logo"
+                         src="/_content/Airport.Features.Auth.Presentation.Web/images/google-g-logo.png"
+                         alt="" width="20" height="20" />
+                    <span>Registrarse con Google</span>
+                </a>
+            }
         }
     </div>
 </section>
@@ -66,8 +79,21 @@
 @code {
     private readonly RegisterInput input = new();
     private bool isLoading;
+    private bool googleAvailable;
     private bool sent;
     private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            googleAvailable = (await AuthClient.GetProvidersAsync(CancellationToken.None)).Google;
+        }
+        catch (HttpRequestException)
+        {
+            googleAvailable = false;
+        }
+    }
 
     private async Task RegisterAsync()
     {

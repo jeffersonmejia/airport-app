@@ -151,23 +151,34 @@
     justify-content: center;
     gap: 12px;
     min-height: 50px;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--outline);
+    padding: 0 12px;
+    color: #1f1f1f;
+    background: #fff;
+    border: 1px solid #747775;
     border-radius: var(--radius-sm);
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
+    font-size: 0.875rem;
     font-weight: 700;
     text-decoration: none;
+    transition: background var(--motion), box-shadow var(--motion);
 }
 
 .google-button:hover {
-    border-color: var(--primary);
+    color: #1f1f1f;
+    background: #f8f9fa;
     box-shadow: 0 0 0 4px var(--focus-halo);
 }
 
-.google-button__mark {
-    color: #4285f4;
-    font-size: 1.25rem;
-    font-weight: 800;
+.google-button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.google-button__logo {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
 }
 
 .account-link {

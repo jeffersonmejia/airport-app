@@ -10,10 +10,12 @@
 .booking-list { display: grid; gap: 10px; }
 .booking-list article { display: grid; grid-template-columns: 1fr 1fr auto auto; align-items: center; gap: 16px; padding: 16px; background: var(--background); border: 1px solid var(--outline-soft); border-radius: var(--radius-sm); }
 .booking-list article div { display: grid; gap: 4px; }
+.booking-list article .booking-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.booking-actions .primary-button, .booking-actions .text-button { white-space: nowrap; }
 .receipt-card header { display: flex; justify-content: space-between; gap: 20px; }
 .receipt-card header > .material-symbols-rounded { color: var(--primary); font-size: 58px; }
 .receipt-card dl { display: grid; gap: 12px; margin: 0; }
 .receipt-card dl div { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--outline-soft); }
 .receipt-card dt { color: var(--text-muted); }
 .receipt-card dd { margin: 0; overflow-wrap: anywhere; }
-@media (max-width: 650px) { .booking-list article { grid-template-columns: 1fr 1fr; } .receipt-card dl div { grid-template-columns: 1fr; gap: 3px; } }
+@media (max-width: 650px) { .booking-list article { grid-template-columns: 1fr 1fr; } .booking-list article .booking-actions { justify-content: flex-start; flex-wrap: wrap; } .receipt-card dl div { grid-template-columns: 1fr; gap: 3px; } }

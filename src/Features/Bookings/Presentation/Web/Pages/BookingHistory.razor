@@ -20,7 +20,13 @@
                         <div><strong>@item.FlightNumber</strong><span>@item.OriginCode → @item.DestinationCode</span></div>
                         <div><small>@item.FareName</small><strong>@item.CurrencyCode @item.Total.ToString("0.00")</strong></div>
                         <span class="status-chip">@item.Status</span>
-                        <a class="text-button" href="/receipt/@item.OrderId">Comprobante</a>
+                        <div class="booking-actions">
+                            @if (string.Equals(item.Status, "PENDING_PAYMENT", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <a class="primary-button" href="/payment/@item.OrderId">Pagar ahora</a>
+                            }
+                            <a class="text-button" href="/receipt/@item.OrderId">Comprobante</a>
+                        </div>
                     </article>
                 }
             </div>

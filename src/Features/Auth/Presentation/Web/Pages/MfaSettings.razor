@@ -30,6 +30,7 @@
             <ol class="mfa-steps">
                 <li>Abre Google Authenticator, Microsoft Authenticator u otra aplicación TOTP.</li>
                 <li>Escanea este código QR.</li>
+                <li>Comprueba que el teléfono use fecha y hora automáticas.</li>
             </ol>
             <img class="mfa-qr" src="@setup.QrCodeDataUri"
                  alt="Código QR para enlazar la aplicación de autenticación" />
@@ -37,6 +38,9 @@
                 <summary>Ingresar la clave manualmente</summary>
                 <code>@setup.SharedKey</code>
             </details>
+            <button class="text-button" type="button" @onclick="RegenerateAsync">
+                Generar un QR nuevo
+            </button>
             <EditForm Model="input" OnValidSubmit="EnableAsync" FormName="enable-mfa">
                 <div class="form-field">
                     <label for="verification-code">Código de verificación</label>
@@ -96,14 +100,14 @@
     private async Task EnableAsync()
     {
         errorMessage = null;
-        var result = await AuthClient.EnableMfaAsync(input.Code, CancellationToken.None);
-        if (result is null)
+        var attempt = await AuthClient.EnableMfaAsync(input.Code, CancellationToken.None);
+        if (attempt.Result is null)
         {
-            errorMessage = "El código no coincide. Revisa el autenticador e inténtalo otra vez.";
+            errorMessage = attempt.ErrorMessage;
             return;
         }
 
-        recoveryCodes = result.RecoveryCodes;
+        recoveryCodes = attempt.Result.RecoveryCodes;
         setup = setup! with { IsEnabled = true };
     }
 
@@ -112,5 +116,13 @@
         await AuthClient.DisableMfaAsync(CancellationToken.None);
         setup = await AuthClient.GetMfaSetupAsync(CancellationToken.None);
         recoveryCodes = [];
+    }
+
+    private async Task RegenerateAsync()
+    {
+        errorMessage = null;
+        input.Code = string.Empty;
+        await AuthClient.ResetMfaSetupAsync(CancellationToken.None);
+        setup = await AuthClient.GetMfaSetupAsync(CancellationToken.None);
     }
 }

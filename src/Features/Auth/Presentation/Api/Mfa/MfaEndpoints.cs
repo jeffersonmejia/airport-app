@@ -29,6 +29,11 @@ public static class MfaEndpoints
                 .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)
                 .RequireAuthenticatedUser());
 
+        group.MapPost("/mfa/reset", ResetAsync)
+            .RequireAuthorization(policy => policy
+                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)
+                .RequireAuthenticatedUser());
+
         group.MapPost("/mfa/sign-in", SignInAsync)
             .AllowAnonymous();
 
@@ -39,6 +44,11 @@ public static class MfaEndpoints
         HttpContext context,
         UserManager<ApplicationUser> userManager)
     {
+        // El QR contiene una credencial. Nunca debe reutilizarse desde la caché
+        // después de que Identity haya rotado la clave del autenticador.
+        context.Response.Headers.CacheControl = "no-store, no-cache, max-age=0";
+        context.Response.Headers.Pragma = "no-cache";
+
         var user = await userManager.GetUserAsync(context.User);
         if (user is null)
         {
@@ -113,6 +123,27 @@ public static class MfaEndpoints
         return Results.NoContent();
     }
 
+    private static async Task<IResult> ResetAsync(
+        HttpContext context,
+        UserManager<ApplicationUser> userManager)
+    {
+        var user = await userManager.GetUserAsync(context.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (await userManager.GetTwoFactorEnabledAsync(user))
+        {
+            return Results.Conflict(new { message = "Desactiva MFA antes de generar otra clave." });
+        }
+
+        var result = await userManager.ResetAuthenticatorKeyAsync(user);
+        return result.Succeeded
+            ? Results.NoContent()
+            : Results.Problem("No fue posible generar una nueva clave MFA.");
+    }
+
     private static async Task<IResult> SignInAsync(
         MfaCodeRequest request,
         SignInManager<ApplicationUser> signInManager)
@@ -131,7 +162,8 @@ public static class MfaEndpoints
 
     private static string BuildAuthenticatorUri(string accountName, string key) =>
         $"otpauth://totp/{Uri.EscapeDataString(Issuer)}:{Uri.EscapeDataString(accountName)}" +
-        $"?secret={key}&issuer={Uri.EscapeDataString(Issuer)}&digits=6";
+        $"?secret={Uri.EscapeDataString(key)}&issuer={Uri.EscapeDataString(Issuer)}" +
+        "&algorithm=SHA1&digits=6&period=30";
 
     private static string BuildQrCodeDataUri(string authenticatorUri)
     {
@@ -149,7 +181,7 @@ public static class MfaEndpoints
             .Select(part => part.ToLowerInvariant()));
 
     private static string NormalizeCode(string? code) =>
-        (code ?? string.Empty).Replace(" ", string.Empty).Replace("-", string.Empty);
+        new((code ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
 
     private sealed record MfaCodeRequest(string Code);
 

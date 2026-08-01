@@ -80,7 +80,11 @@ public sealed class AuthClient(HttpClient httpClient)
 
     public async Task<MfaSetupViewModel?> GetMfaSetupAsync(CancellationToken cancellationToken)
     {
-        using var request = CreateCookieRequest(HttpMethod.Get, "api/auth/mfa/setup");
+        // El identificador evita que el navegador entregue un QR anterior desde
+        // memoria después de regenerar la clave del autenticador.
+        using var request = CreateCookieRequest(
+            HttpMethod.Get,
+            $"api/auth/mfa/setup?request={Guid.NewGuid():N}");
         using var response = await httpClient.SendAsync(request, cancellationToken);
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
@@ -91,22 +95,44 @@ public sealed class AuthClient(HttpClient httpClient)
         return await response.Content.ReadFromJsonAsync<MfaSetupViewModel>(cancellationToken);
     }
 
-    public async Task<EnableMfaResult?> EnableMfaAsync(string code, CancellationToken cancellationToken)
+    public async Task<EnableMfaAttempt> EnableMfaAsync(
+        string code,
+        CancellationToken cancellationToken)
     {
         using var request = CreateCookieRequest(HttpMethod.Post, "api/auth/mfa/enable");
         request.Content = JsonContent.Create(new { code });
         using var response = await httpClient.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
         {
-            return null;
+            var result = await response.Content.ReadFromJsonAsync<EnableMfaResult>(cancellationToken);
+            return new EnableMfaAttempt(result, null);
         }
 
-        return await response.Content.ReadFromJsonAsync<EnableMfaResult>(cancellationToken);
+        var errorMessage = response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized =>
+                "Tu sesión venció. Inicia sesión nuevamente antes de activar MFA.",
+            HttpStatusCode.Forbidden =>
+                "Tu sesión no tiene permiso para configurar MFA.",
+            HttpStatusCode.BadRequest =>
+                "El backend recibió el código, pero no coincide con la clave del QR. Elimina la cuenta Airport del autenticador y escanea nuevamente el QR mostrado.",
+            _ =>
+                $"El servidor no pudo validar MFA (HTTP {(int)response.StatusCode})."
+        };
+
+        return new EnableMfaAttempt(null, errorMessage);
     }
 
     public async Task DisableMfaAsync(CancellationToken cancellationToken)
     {
         using var request = CreateCookieRequest(HttpMethod.Post, "api/auth/mfa/disable");
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task ResetMfaSetupAsync(CancellationToken cancellationToken)
+    {
+        using var request = CreateCookieRequest(HttpMethod.Post, "api/auth/mfa/reset");
         using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
