@@ -6,4 +6,8 @@ public sealed record FlightSearchCriteria(
     DateOnly? DepartureDate,
     string? Number,
     string SortBy,
-    bool Descending);
+    bool Descending,
+    string? OriginCode,
+    string? DestinationCode,
+    short? AirlineId,
+    int? AirplaneId);

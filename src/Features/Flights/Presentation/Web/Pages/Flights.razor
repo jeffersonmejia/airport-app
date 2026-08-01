@@ -24,7 +24,6 @@
             <span>Consulta rápida y segura</span>
         </div>
 
-        <FlightSearch IsLoading="isListLoading" Airports="airports" OnSearch="SearchAsync" />
     </div>
 
     <div class="hero__visual" aria-hidden="true">
@@ -97,6 +96,8 @@
         }
     </header>
 
+    <FlightSearch IsLoading="isListLoading" OnSearch="SearchAsync" />
+
     @if (isListLoading)
     {
         <div class="flight-list" aria-label="Cargando vuelos">
@@ -159,26 +160,17 @@
     private int currentFlightId;
     private FlightViewModel? flight;
     private FlightSearchResultViewModel? flightPage;
-    private IReadOnlyCollection<AirportViewModel> airports = [];
     private string? errorMessage;
     private string? listError;
     private bool isLoading;
     private bool isListLoading;
     private bool hasSearched;
     private int currentPage = 1;
-    private FlightSearchInput currentSearch = new(null, null, null, null, "departure", false);
+    private FlightSearchInput currentSearch = new(null, null, null, null, null, null, "departure", false);
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            airports = await FlightsClient.ListAirportsAsync(CancellationToken.None);
-            await LoadPageAsync(1);
-        }
-        catch (HttpRequestException)
-        {
-            listError = SafeUserMessages.ServiceUnavailable;
-        }
+        await LoadPageAsync(1);
     }
 
     private async Task SearchAsync(FlightSearchInput input)

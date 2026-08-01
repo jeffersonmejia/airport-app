@@ -19,21 +19,30 @@ public sealed class SearchFlightsHandlerTests
                 2,
                 4)
         };
-        var handler = new SearchFlightsHandler(new StubFlightReader(flights, 17));
+        var reader = new StubFlightReader(flights, 17);
+        var handler = new SearchFlightsHandler(reader);
 
         var result = await handler.HandleAsync(
-            new SearchFlightsQuery(null, null, null, null, "departure", false, 2, 5),
+            new SearchFlightsQuery(
+                null, null, null, null, "departure", false, 2, 5,
+                "uio", " gye ", 2, 4),
             CancellationToken.None);
 
         Assert.Single(result.Items);
         Assert.Equal("AE007", result.Items[0].Number);
         Assert.Equal(4, result.TotalPages);
         Assert.Equal(17, result.TotalItems);
+        Assert.Equal("UIO", reader.LastCriteria?.OriginCode);
+        Assert.Equal("GYE", reader.LastCriteria?.DestinationCode);
+        Assert.Equal((short)2, reader.LastCriteria?.AirlineId);
+        Assert.Equal(4, reader.LastCriteria?.AirplaneId);
     }
 
     private sealed class StubFlightReader(IReadOnlyList<Flight> flights, int totalItems)
         : IFlightReader
     {
+        public FlightSearchCriteria? LastCriteria { get; private set; }
+
         public Task<Flight?> FindByIdAsync(int id, CancellationToken cancellationToken) =>
             Task.FromResult<Flight?>(null);
 
@@ -44,7 +53,10 @@ public sealed class SearchFlightsHandlerTests
             FlightSearchCriteria criteria,
             int page,
             int pageSize,
-            CancellationToken cancellationToken) =>
-            Task.FromResult(new FlightSearchPage(flights, totalItems));
+            CancellationToken cancellationToken)
+        {
+            LastCriteria = criteria;
+            return Task.FromResult(new FlightSearchPage(flights, totalItems));
+        }
     }
 }

@@ -1,37 +1,40 @@
 @using Airport.Features.Flights.Presentation.Web.Models
 
-<form class="search-card" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Buscar vuelos disponibles">
+<form class="search-card search-card--filters" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Filtrar vuelos disponibles">
     <div class="search-grid">
         <label class="search-control">
-            <span>Origen</span>
-            <select @bind="originAirportId" disabled="@IsLoading" required>
-                <option value="">Selecciona origen</option>
-                @foreach (var airport in Airports)
-                {
-                    <option value="@airport.Id">@airport.Label</option>
-                }
-            </select>
+            <span>Código de origen</span>
+            <input maxlength="4" placeholder="Ej. UIO" autocomplete="off"
+                   @bind="originCode" disabled="@IsLoading" />
         </label>
 
         <label class="search-control">
-            <span>Destino</span>
-            <select @bind="destinationAirportId" disabled="@IsLoading" required>
-                <option value="">Selecciona destino</option>
-                @foreach (var airport in Airports)
-                {
-                    <option value="@airport.Id">@airport.Label</option>
-                }
-            </select>
+            <span>Código de destino</span>
+            <input maxlength="4" placeholder="Ej. GYE" autocomplete="off"
+                   @bind="destinationCode" disabled="@IsLoading" />
         </label>
 
         <label class="search-control">
-            <span>Fecha</span>
-            <input type="date" @bind="departureDate" disabled="@IsLoading" required />
+            <span>Fecha de salida</span>
+            <input type="date" @bind="departureDate" disabled="@IsLoading" />
         </label>
 
         <label class="search-control">
             <span>Número de vuelo</span>
-            <input maxlength="8" placeholder="Opcional" @bind="number" disabled="@IsLoading" />
+            <input maxlength="8" placeholder="Ej. AE007" autocomplete="off"
+                   @bind="number" disabled="@IsLoading" />
+        </label>
+
+        <label class="search-control">
+            <span>ID de aerolínea</span>
+            <input type="number" min="1" inputmode="numeric" placeholder="Ej. 2"
+                   @bind="airlineId" disabled="@IsLoading" />
+        </label>
+
+        <label class="search-control">
+            <span>ID de avión</span>
+            <input type="number" min="1" inputmode="numeric" placeholder="Ej. 4"
+                   @bind="airplaneId" disabled="@IsLoading" />
         </label>
 
         <label class="search-control">
@@ -54,17 +57,25 @@
         <p class="search-validation" role="alert">@validationMessage</p>
     }
 
-    <button class="primary-button search-submit" type="submit" disabled="@IsLoading">
-        <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
-        <span>@(IsLoading ? "Buscando…" : "Buscar vuelos")</span>
-    </button>
+    <div class="search-actions">
+        <button class="text-button" type="button" disabled="@IsLoading" @onclick="ClearAsync">
+            <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span>
+            Limpiar
+        </button>
+        <button class="primary-button search-submit" type="submit" disabled="@IsLoading">
+            <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+            <span>@(IsLoading ? "Filtrando…" : "Aplicar filtros")</span>
+        </button>
+    </div>
 </form>
 
 @code {
-    private int? originAirportId;
-    private int? destinationAirportId;
+    private string? originCode;
+    private string? destinationCode;
     private DateOnly? departureDate;
     private string? number;
+    private short? airlineId;
+    private int? airplaneId;
     private string sortBy = "departure";
     private bool descending;
     private string? validationMessage;
@@ -72,33 +83,57 @@
     [Parameter]
     public bool IsLoading { get; set; }
 
-    [Parameter]
-    public IReadOnlyCollection<AirportViewModel> Airports { get; set; } = [];
-
     [Parameter, EditorRequired]
     public EventCallback<FlightSearchInput> OnSearch { get; set; }
 
     private Task SubmitAsync()
     {
         validationMessage = null;
-        if (originAirportId is null || destinationAirportId is null || departureDate is null)
+        var normalizedOrigin = NormalizeCode(originCode);
+        var normalizedDestination = NormalizeCode(destinationCode);
+
+        if (!IsValidAirportCode(normalizedOrigin) || !IsValidAirportCode(normalizedDestination))
         {
-            validationMessage = "Selecciona origen, destino y fecha para buscar.";
+            validationMessage = "Los códigos de aeropuerto deben tener 3 o 4 letras.";
             return Task.CompletedTask;
         }
 
-        if (originAirportId is not null && originAirportId == destinationAirportId)
+        if (normalizedOrigin is not null && normalizedOrigin == normalizedDestination)
         {
             validationMessage = "El aeropuerto de destino debe ser diferente del origen.";
             return Task.CompletedTask;
         }
 
         return OnSearch.InvokeAsync(new FlightSearchInput(
-            originAirportId,
-            destinationAirportId,
+            normalizedOrigin,
+            normalizedDestination,
             departureDate,
             number?.Trim(),
+            airlineId,
+            airplaneId,
             sortBy,
             descending));
     }
+
+    private Task ClearAsync()
+    {
+        originCode = null;
+        destinationCode = null;
+        departureDate = null;
+        number = null;
+        airlineId = null;
+        airplaneId = null;
+        sortBy = "departure";
+        descending = false;
+        validationMessage = null;
+
+        return OnSearch.InvokeAsync(new FlightSearchInput(
+            null, null, null, null, null, null, "departure", false));
+    }
+
+    private static string? NormalizeCode(string? code) =>
+        string.IsNullOrWhiteSpace(code) ? null : code.Trim().ToUpperInvariant();
+
+    private static bool IsValidAirportCode(string? code) =>
+        code is null || (code.Length is 3 or 4 && code.All(char.IsLetter));
 }

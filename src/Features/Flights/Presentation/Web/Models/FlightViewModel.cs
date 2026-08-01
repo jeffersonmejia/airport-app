@@ -25,15 +25,12 @@ public sealed record FareViewModel(
     bool AllowsChanges,
     bool PriorityBoarding);
 
-public sealed record AirportViewModel(int Id, string Iata, string Icao, string Name)
-{
-    public string Label => $"{Iata} · {Name}";
-}
-
 public sealed record FlightSearchInput(
-    int? OriginAirportId,
-    int? DestinationAirportId,
+    string? OriginCode,
+    string? DestinationCode,
     DateOnly? DepartureDate,
     string? Number,
+    short? AirlineId,
+    int? AirplaneId,
     string SortBy,
     bool Descending);

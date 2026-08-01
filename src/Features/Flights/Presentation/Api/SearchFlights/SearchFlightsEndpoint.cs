@@ -21,9 +21,13 @@ public static class SearchFlightsEndpoint
 
     private static async Task<IResult> HandleAsync(
         string? number,
+        string? originCode,
+        string? destinationCode,
         int? originAirportId,
         int? destinationAirportId,
         DateOnly? departureDate,
+        short? airlineId,
+        int? airplaneId,
         string? sortBy,
         bool? descending,
         int? page,
@@ -40,7 +44,11 @@ public static class SearchFlightsEndpoint
             sortBy?.Trim().ToLowerInvariant() ?? "departure",
             descending ?? false,
             page ?? PaginationPolicy.DefaultPage,
-            pageSize ?? PaginationPolicy.PageSize);
+            pageSize ?? PaginationPolicy.PageSize,
+            originCode,
+            destinationCode,
+            airlineId,
+            airplaneId);
         var errors = validator.Validate(query);
 
         if (errors.Count > 0)

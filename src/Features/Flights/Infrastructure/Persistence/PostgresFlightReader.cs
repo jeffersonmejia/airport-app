@@ -56,6 +56,22 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             query = query.Where(row => row.DestinationAirportId == criteria.DestinationAirportId);
         }
 
+        if (!string.IsNullOrWhiteSpace(criteria.OriginCode))
+        {
+            var code = criteria.OriginCode;
+            query = query.Where(row =>
+                (row.OriginAirport.Iata != null && EF.Functions.ILike(row.OriginAirport.Iata.Trim(), code)) ||
+                EF.Functions.ILike(row.OriginAirport.Icao.Trim(), code));
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.DestinationCode))
+        {
+            var code = criteria.DestinationCode;
+            query = query.Where(row =>
+                (row.DestinationAirport.Iata != null && EF.Functions.ILike(row.DestinationAirport.Iata.Trim(), code)) ||
+                EF.Functions.ILike(row.DestinationAirport.Icao.Trim(), code));
+        }
+
         if (criteria.DepartureDate is not null)
         {
             var start = new DateTimeOffset(criteria.DepartureDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
@@ -66,6 +82,16 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
         if (!string.IsNullOrWhiteSpace(criteria.Number))
         {
             query = query.Where(row => EF.Functions.ILike(row.FlightNumber, $"%{criteria.Number}%"));
+        }
+
+        if (criteria.AirlineId is not null)
+        {
+            query = query.Where(row => row.AirlineId == criteria.AirlineId);
+        }
+
+        if (criteria.AirplaneId is not null)
+        {
+            query = query.Where(row => row.AirplaneId == criteria.AirplaneId);
         }
 
         var totalItems = await query.CountAsync(cancellationToken);
