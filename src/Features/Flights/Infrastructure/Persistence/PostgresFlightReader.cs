@@ -27,16 +27,27 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             .SingleOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
-        CancellationToken cancellationToken) => await dbContext.Airports
-        .AsNoTracking()
-        .Where(row => row.Iata != null)
-        .OrderBy(row => row.Name)
-        .Select(row => new Airport.Features.Flights.Domain.Airport(
-            row.AirportId,
-            row.Iata!.Trim(),
-            row.Icao.Trim(),
-            row.Name))
-        .ToListAsync(cancellationToken);
+        int? originAirportId,
+        CancellationToken cancellationToken)
+    {
+        var availableAirportIds = originAirportId is null
+            ? dbContext.Flights.Select(flight => flight.OriginAirportId).Distinct()
+            : dbContext.Flights
+                .Where(flight => flight.OriginAirportId == originAirportId)
+                .Select(flight => flight.DestinationAirportId)
+                .Distinct();
+
+        return await dbContext.Airports
+            .AsNoTracking()
+            .Where(row => row.Iata != null && availableAirportIds.Contains(row.AirportId))
+            .OrderBy(row => row.Name)
+            .Select(row => new Airport.Features.Flights.Domain.Airport(
+                row.AirportId,
+                row.Iata!.Trim(),
+                row.Icao.Trim(),
+                row.Name))
+            .ToListAsync(cancellationToken);
+    }
 
     public async Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
@@ -54,22 +65,6 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
         if (criteria.DestinationAirportId is not null)
         {
             query = query.Where(row => row.DestinationAirportId == criteria.DestinationAirportId);
-        }
-
-        if (!string.IsNullOrWhiteSpace(criteria.OriginCode))
-        {
-            var code = criteria.OriginCode;
-            query = query.Where(row =>
-                (row.OriginAirport.Iata != null && EF.Functions.ILike(row.OriginAirport.Iata.Trim(), code)) ||
-                EF.Functions.ILike(row.OriginAirport.Icao.Trim(), code));
-        }
-
-        if (!string.IsNullOrWhiteSpace(criteria.DestinationCode))
-        {
-            var code = criteria.DestinationCode;
-            query = query.Where(row =>
-                (row.DestinationAirport.Iata != null && EF.Functions.ILike(row.DestinationAirport.Iata.Trim(), code)) ||
-                EF.Functions.ILike(row.DestinationAirport.Icao.Trim(), code));
         }
 
         if (criteria.DepartureDate is not null)

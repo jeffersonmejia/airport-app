@@ -5,8 +5,9 @@ namespace Airport.Features.Flights.Application.ListAirports;
 public sealed class ListAirportsHandler(IFlightReader flightReader)
 {
     public async Task<IReadOnlyCollection<AirportResponse>> HandleAsync(
+        int? originAirportId,
         CancellationToken cancellationToken) =>
-        (await flightReader.ListAirportsAsync(cancellationToken))
+        (await flightReader.ListAirportsAsync(originAirportId, cancellationToken))
             .Select(airport => new AirportResponse(
                 airport.Id,
                 airport.Iata,

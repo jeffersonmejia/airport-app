@@ -24,6 +24,19 @@ public sealed class FlightsClient(HttpClient httpClient)
             cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<AirportViewModel>> ListAirportsAsync(
+        int? originAirportId,
+        CancellationToken cancellationToken)
+    {
+        var path = originAirportId is null
+            ? "api/flights/airports"
+            : $"api/flights/airports?originAirportId={originAirportId.Value}";
+
+        return await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirportViewModel>>(
+            path,
+            cancellationToken) ?? [];
+    }
+
     public async Task<FlightSearchResultViewModel> SearchAsync(
         FlightSearchInput input,
         int page,
@@ -32,8 +45,8 @@ public sealed class FlightsClient(HttpClient httpClient)
     {
         var parameters = new Dictionary<string, string?>
         {
-            ["originCode"] = input.OriginCode,
-            ["destinationCode"] = input.DestinationCode,
+            ["originAirportId"] = input.OriginAirportId?.ToString(),
+            ["destinationAirportId"] = input.DestinationAirportId?.ToString(),
             ["departureDate"] = input.DepartureDate?.ToString("yyyy-MM-dd"),
             ["number"] = input.Number,
             ["airlineId"] = input.AirlineId?.ToString(),

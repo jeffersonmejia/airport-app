@@ -16,8 +16,6 @@ public sealed class SearchFlightsHandler(IFlightReader flightReader)
                 query.Number?.Trim(),
                 query.SortBy,
                 query.Descending,
-                query.OriginCode?.Trim().ToUpperInvariant(),
-                query.DestinationCode?.Trim().ToUpperInvariant(),
                 query.AirlineId,
                 query.AirplaneId),
             query.Page,

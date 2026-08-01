@@ -35,18 +35,9 @@ public sealed class SearchFlightsValidator
             errors[nameof(query.DestinationAirportId)] = ["El aeropuerto de destino no es válido."];
         }
 
-        ValidateAirportCode(query.OriginCode, nameof(query.OriginCode), errors);
-        ValidateAirportCode(query.DestinationCode, nameof(query.DestinationCode), errors);
-
         if (query.OriginAirportId is not null && query.OriginAirportId == query.DestinationAirportId)
         {
             errors[nameof(query.DestinationAirportId)] = ["El destino debe ser diferente del origen."];
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.OriginCode) &&
-            string.Equals(query.OriginCode.Trim(), query.DestinationCode?.Trim(), StringComparison.OrdinalIgnoreCase))
-        {
-            errors[nameof(query.DestinationCode)] = ["El destino debe ser diferente del origen."];
         }
 
         if (query.AirlineId is <= 0)
@@ -65,18 +56,5 @@ public sealed class SearchFlightsValidator
         }
 
         return errors;
-    }
-
-    private static void ValidateAirportCode(
-        string? code,
-        string field,
-        IDictionary<string, string[]> errors)
-    {
-        var normalized = code?.Trim();
-        if (!string.IsNullOrEmpty(normalized) &&
-            (normalized.Length is < 3 or > 4 || !normalized.All(char.IsLetter)))
-        {
-            errors[field] = ["El código debe contener 3 o 4 letras (IATA o ICAO)."];
-        }
     }
 }

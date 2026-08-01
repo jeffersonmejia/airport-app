@@ -26,29 +26,16 @@ public sealed class SearchFlightsValidatorTests
     }
 
     [Theory]
-    [InlineData("UI", null)]
-    [InlineData("UIO1", null)]
-    [InlineData(null, "TOOLONG")]
-    public void Validate_WithInvalidAirportCode_ReturnsErrors(string? originCode, string? destinationCode)
+    [InlineData(0, null)]
+    [InlineData(null, 0)]
+    public void Validate_WithInvalidTransportIds_ReturnsErrors(short? airlineId, int? airplaneId)
     {
         var query = new SearchFlightsQuery(
             null, null, null, null, "departure", false, 1, 5,
-            originCode, destinationCode);
+            airlineId, airplaneId);
 
         var errors = validator.Validate(query);
 
         Assert.NotEmpty(errors);
-    }
-
-    [Fact]
-    public void Validate_WithSameRouteCode_ReturnsDestinationError()
-    {
-        var query = new SearchFlightsQuery(
-            null, null, null, null, "departure", false, 1, 5,
-            "uio", "UIO");
-
-        var errors = validator.Validate(query);
-
-        Assert.Contains(nameof(SearchFlightsQuery.DestinationCode), errors.Keys);
     }
 }

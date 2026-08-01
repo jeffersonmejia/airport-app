@@ -16,10 +16,11 @@ public sealed class CachedFlightReader(
             cancellationToken);
 
     public Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+        int? originAirportId,
         CancellationToken cancellationToken) =>
         cache.GetOrCreateAsync(
-            "flights:airports",
-            innerReader.ListAirportsAsync,
+            $"flights:airports:origin:{originAirportId?.ToString() ?? "all"}",
+            token => innerReader.ListAirportsAsync(originAirportId, token),
             CachePolicy.QueryLifetime,
             cancellationToken);
 
@@ -32,7 +33,8 @@ public sealed class CachedFlightReader(
         var normalizedNumber = criteria.Number?.Trim().ToUpperInvariant() ?? "all";
         var key = $"flights:search:{criteria.OriginAirportId}:{criteria.DestinationAirportId}:" +
             $"{criteria.DepartureDate:yyyy-MM-dd}:{normalizedNumber}:{criteria.SortBy}:" +
-            $"{criteria.Descending}:page:{page}:size:{pageSize}";
+            $"{criteria.Descending}:airline:{criteria.AirlineId}:airplane:{criteria.AirplaneId}:" +
+            $"page:{page}:size:{pageSize}";
 
         return cache.GetOrCreateAsync(
             key,

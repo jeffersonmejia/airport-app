@@ -11,7 +11,5 @@ public sealed record SearchFlightsQuery(
     bool Descending = false,
     int Page = PaginationPolicy.DefaultPage,
     int PageSize = PaginationPolicy.PageSize,
-    string? OriginCode = null,
-    string? DestinationCode = null,
     short? AirlineId = null,
     int? AirplaneId = null);

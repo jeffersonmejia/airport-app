@@ -7,6 +7,7 @@ public interface IFlightReader
     Task<Flight?> FindByIdAsync(int id, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+        int? originAirportId,
         CancellationToken cancellationToken);
 
     Task<FlightSearchPage> SearchAsync(

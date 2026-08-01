@@ -41,6 +41,7 @@ public sealed class GetFlightHandlerTests
             Task.FromResult(flight);
 
         public Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+            int? originAirportId,
             CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<Airport.Features.Flights.Domain.Airport>>([]);
 
         public Task<FlightSearchPage> SearchAsync(

@@ -1,17 +1,31 @@
 @using Airport.Features.Flights.Presentation.Web.Models
+@using Airport.Features.Flights.Presentation.Web.Services
+@inject FlightsClient FlightsClient
 
 <form class="search-card search-card--filters" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Filtrar vuelos disponibles">
     <div class="search-grid">
         <label class="search-control">
-            <span>Código de origen</span>
-            <input maxlength="4" placeholder="Ej. UIO" autocomplete="off"
-                   @bind="originCode" disabled="@IsLoading" />
+            <span>Aeropuerto de origen</span>
+            <select @bind="originAirportId" @bind:after="LoadDestinationsAsync"
+                    disabled="@(IsLoading || isOriginsLoading || isDestinationsLoading)">
+                <option value="">@(isOriginsLoading ? "Cargando orígenes…" : "Todos los orígenes")</option>
+                @foreach (var airport in origins)
+                {
+                    <option value="@airport.Id">@airport.Label</option>
+                }
+            </select>
         </label>
 
         <label class="search-control">
-            <span>Código de destino</span>
-            <input maxlength="4" placeholder="Ej. GYE" autocomplete="off"
-                   @bind="destinationCode" disabled="@IsLoading" />
+            <span>Aeropuerto de destino</span>
+            <select @bind="destinationAirportId"
+                    disabled="@(IsLoading || isDestinationsLoading || originAirportId is null)">
+                <option value="">@(DestinationPlaceholder)</option>
+                @foreach (var airport in destinations)
+                {
+                    <option value="@airport.Id">@airport.Label</option>
+                }
+            </select>
         </label>
 
         <label class="search-control">
@@ -70,15 +84,23 @@
 </form>
 
 @code {
-    private string? originCode;
-    private string? destinationCode;
+    private int? originAirportId;
+    private int? destinationAirportId;
     private DateOnly? departureDate;
     private string? number;
     private short? airlineId;
     private int? airplaneId;
     private string sortBy = "departure";
     private bool descending;
+    private bool isOriginsLoading;
+    private bool isDestinationsLoading;
     private string? validationMessage;
+    private IReadOnlyCollection<AirportViewModel> origins = [];
+    private IReadOnlyCollection<AirportViewModel> destinations = [];
+
+    private string DestinationPlaceholder => isDestinationsLoading
+        ? "Cargando destinos…"
+        : originAirportId is null ? "Selecciona primero un origen" : "Todos los destinos";
 
     [Parameter]
     public bool IsLoading { get; set; }
@@ -86,27 +108,35 @@
     [Parameter, EditorRequired]
     public EventCallback<FlightSearchInput> OnSearch { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        isOriginsLoading = true;
+        try
+        {
+            origins = await FlightsClient.ListAirportsAsync(null, CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar los aeropuertos disponibles.";
+        }
+        finally
+        {
+            isOriginsLoading = false;
+        }
+    }
+
     private Task SubmitAsync()
     {
         validationMessage = null;
-        var normalizedOrigin = NormalizeCode(originCode);
-        var normalizedDestination = NormalizeCode(destinationCode);
-
-        if (!IsValidAirportCode(normalizedOrigin) || !IsValidAirportCode(normalizedDestination))
-        {
-            validationMessage = "Los códigos de aeropuerto deben tener 3 o 4 letras.";
-            return Task.CompletedTask;
-        }
-
-        if (normalizedOrigin is not null && normalizedOrigin == normalizedDestination)
+        if (originAirportId is not null && originAirportId == destinationAirportId)
         {
             validationMessage = "El aeropuerto de destino debe ser diferente del origen.";
             return Task.CompletedTask;
         }
 
         return OnSearch.InvokeAsync(new FlightSearchInput(
-            normalizedOrigin,
-            normalizedDestination,
+            originAirportId,
+            destinationAirportId,
             departureDate,
             number?.Trim(),
             airlineId,
@@ -117,8 +147,9 @@
 
     private Task ClearAsync()
     {
-        originCode = null;
-        destinationCode = null;
+        originAirportId = null;
+        destinationAirportId = null;
+        destinations = [];
         departureDate = null;
         number = null;
         airlineId = null;
@@ -131,9 +162,31 @@
             null, null, null, null, null, null, "departure", false));
     }
 
-    private static string? NormalizeCode(string? code) =>
-        string.IsNullOrWhiteSpace(code) ? null : code.Trim().ToUpperInvariant();
+    private async Task LoadDestinationsAsync()
+    {
+        destinationAirportId = null;
+        destinations = [];
+        validationMessage = null;
 
-    private static bool IsValidAirportCode(string? code) =>
-        code is null || (code.Length is 3 or 4 && code.All(char.IsLetter));
+        if (originAirportId is null)
+        {
+            return;
+        }
+
+        isDestinationsLoading = true;
+        try
+        {
+            destinations = await FlightsClient.ListAirportsAsync(
+                originAirportId,
+                CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar los destinos para ese origen.";
+        }
+        finally
+        {
+            isDestinationsLoading = false;
+        }
+    }
 }

@@ -7,7 +7,5 @@ public sealed record FlightSearchCriteria(
     string? Number,
     string SortBy,
     bool Descending,
-    string? OriginCode,
-    string? DestinationCode,
     short? AirlineId,
     int? AirplaneId);

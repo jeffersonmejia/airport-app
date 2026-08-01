@@ -9,14 +9,28 @@ public static class ListAirportsEndpoint
 {
     public static RouteGroupBuilder MapListAirports(this RouteGroupBuilder group)
     {
-        group.MapGet("/airports", async (
-                ListAirportsHandler handler,
-                CancellationToken cancellationToken) =>
-            Results.Ok(await handler.HandleAsync(cancellationToken)))
+        group.MapGet("/airports", HandleAsync)
             .WithName("ListAirports")
-            .WithSummary("Lista aeropuertos disponibles para buscar vuelos")
-            .Produces<IReadOnlyCollection<AirportResponse>>();
+            .WithSummary("Lista orígenes o destinos disponibles para buscar vuelos")
+            .Produces<IReadOnlyCollection<AirportResponse>>()
+            .ProducesValidationProblem();
 
         return group;
+    }
+
+    private static async Task<IResult> HandleAsync(
+        int? originAirportId,
+        ListAirportsHandler handler,
+        CancellationToken cancellationToken)
+    {
+        if (originAirportId is <= 0)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [nameof(originAirportId)] = ["El aeropuerto de origen no es válido."]
+            });
+        }
+
+        return Results.Ok(await handler.HandleAsync(originAirportId, cancellationToken));
     }
 }
