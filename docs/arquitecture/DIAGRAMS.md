@@ -168,37 +168,24 @@ flowchart LR
 ```mermaid
 flowchart TD
     start([Inicio]) --> auth{¿Cliente autenticado?}
-    auth -- No --> login[Registrar usuario o iniciar sesión]
+    auth -- No --> login[Registrarse o iniciar sesión]
     login --> auth
-    auth -- Sí --> criteria[Seleccionar origen, destino y fecha]
-    criteria --> validCriteria{¿Criterios válidos?}
-    validCriteria -- No --> criteriaError[Mostrar validación segura]
-    criteriaError --> criteria
-    validCriteria -- Sí --> search[Consultar vuelos reales con filtros y paginación física]
-    search --> available{¿Hay vuelos disponibles?}
-    available -- No --> empty[Mostrar estado sin resultados]
-    empty --> criteria
-    available -- Sí --> detail[Consultar detalle y seleccionar tarifa]
-    detail --> create[Crear orden con identidad de la cookie]
-    create --> recalculate[Recalcular tarifa y monto en el servidor]
-    recalculate --> validOffer{¿Vuelo y tarifa disponibles?}
-    validOffer -- No --> rejected[Rechazar la operación]
-    validOffer -- Sí --> pending[Persistir orden PENDING_PAYMENT y su detalle]
-    pending --> paypalOrder[Crear orden PayPal con clave de idempotencia]
-    paypalOrder --> approval[Redirigir al cliente a PayPal Sandbox]
-    approval --> decision{Resultado en PayPal}
-    decision -- Cancelado --> cancelled[Mostrar pago cancelado; no emitir boleto]
-    decision -- Aprobado --> capture[Solicitar captura desde el backend]
-    capture --> verify{¿COMPLETED y coinciden monto y moneda?}
-    verify -- No --> failed[Rechazar captura; conservar orden pendiente]
-    verify -- Sí --> transaction[Transacción serializable]
-    transaction --> payment[Marcar pago COMPLETED]
-    payment --> paid[Marcar orden PAID]
-    paid --> unique{¿La orden ya tiene boleto?}
-    unique -- Sí --> receipt[Recuperar boleto existente]
-    unique -- No --> ticket[Emitir un único boleto]
-    ticket --> receipt[Mostrar comprobante e historial]
-    receipt --> finish([Fin])
+    auth -- Sí --> search[Buscar vuelo y seleccionar tarifa]
+    search --> order[Recalcular monto y crear orden pendiente]
+    order --> validOrder{¿Orden válida?}
+    validOrder -- No --> rejected[Rechazar operación]
+    validOrder -- Sí --> paypal[Procesar pago en PayPal Sandbox]
+    paypal --> approved{¿Pago aprobado?}
+    approved -- No --> cancelled[Cancelar sin emitir boleto]
+    approved -- Sí --> verify[Verificar captura, monto y moneda]
+    verify --> validPayment{¿Captura válida?}
+    validPayment -- No --> failed[Rechazar pago]
+    validPayment -- Sí --> complete[Confirmar compra y emitir un único boleto]
+    complete --> receipt[Mostrar comprobante e historial]
+    rejected --> finish([Fin])
+    cancelled --> finish
+    failed --> finish
+    receipt --> finish
 ```
 
 ## 7. Diagrama de casos de uso
