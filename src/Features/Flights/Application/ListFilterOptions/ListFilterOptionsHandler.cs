@@ -16,6 +16,22 @@ public sealed class ListFilterOptionsHandler(IFlightReader flightReader)
         (await flightReader.ListAirplanesAsync(airlineId, cancellationToken))
             .Select(option => new AirplaneOptionResponse(option.Id, option.Model, option.Capacity))
             .ToArray();
+
+    public Task<IReadOnlyList<string>> ListFlightNumbersAsync(
+        int originAirportId,
+        int destinationAirportId,
+        DateOnly? departureDate,
+        short? airlineId,
+        int? airplaneId,
+        CancellationToken cancellationToken) =>
+        flightReader.ListFlightNumbersAsync(
+            new FlightNumberFilter(
+                originAirportId,
+                destinationAirportId,
+                departureDate,
+                airlineId,
+                airplaneId),
+            cancellationToken);
 }
 
 public sealed record AirlineOptionResponse(short Id, string Iata, string Name);

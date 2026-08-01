@@ -55,6 +55,10 @@ public sealed class SearchFlightsHandlerTests
             short airlineId,
             CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AirplaneFilterOption>>([]);
 
+        public Task<IReadOnlyList<string>> ListFlightNumbersAsync(
+            FlightNumberFilter filter,
+            CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+
         public Task<FlightSearchPage> SearchAsync(
             FlightSearchCriteria criteria,
             int page,

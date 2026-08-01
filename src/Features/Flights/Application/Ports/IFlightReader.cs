@@ -17,6 +17,10 @@ public interface IFlightReader
         short airlineId,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<string>> ListFlightNumbersAsync(
+        FlightNumberFilter filter,
+        CancellationToken cancellationToken);
+
     Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,

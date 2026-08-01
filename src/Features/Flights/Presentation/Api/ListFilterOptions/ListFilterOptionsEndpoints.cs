@@ -23,6 +23,12 @@ public static class ListFilterOptionsEndpoints
             .Produces<IReadOnlyCollection<AirplaneOptionResponse>>()
             .ProducesValidationProblem();
 
+        group.MapGet("/numbers", HandleFlightNumbersAsync)
+            .WithName("ListFlightNumbers")
+            .WithSummary("Lista números de vuelo compatibles con los filtros actuales")
+            .Produces<IReadOnlyList<string>>()
+            .ProducesValidationProblem();
+
         return group;
     }
 
@@ -40,5 +46,39 @@ public static class ListFilterOptionsEndpoints
         }
 
         return Results.Ok(await handler.ListAirplanesAsync(airlineId.Value, cancellationToken));
+    }
+
+    private static async Task<IResult> HandleFlightNumbersAsync(
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate,
+        short? airlineId,
+        int? airplaneId,
+        ListFilterOptionsHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (originAirportId is null or <= 0)
+        {
+            errors[nameof(originAirportId)] = ["Selecciona un aeropuerto de origen válido."];
+        }
+
+        if (destinationAirportId is null or <= 0)
+        {
+            errors[nameof(destinationAirportId)] = ["Selecciona un aeropuerto de destino válido."];
+        }
+
+        if (errors.Count > 0)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        return Results.Ok(await handler.ListFlightNumbersAsync(
+            originAirportId!.Value,
+            destinationAirportId!.Value,
+            departureDate,
+            airlineId,
+            airplaneId,
+            cancellationToken));
     }
 }

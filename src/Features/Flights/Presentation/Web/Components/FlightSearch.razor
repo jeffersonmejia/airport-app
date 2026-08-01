@@ -7,7 +7,7 @@
         <label class="search-control">
             <span>Aeropuerto de origen</span>
             <select @bind="originAirportId" @bind:after="LoadDestinationsAsync"
-                    disabled="@(IsLoading || isOriginsLoading || isDestinationsLoading)">
+                    disabled="@(IsLoading || isOriginsLoading || isDestinationsLoading || isFlightNumbersLoading)">
                 <option value="">@(isOriginsLoading ? "Cargando orígenes…" : "Todos los orígenes")</option>
                 @foreach (var airport in origins)
                 {
@@ -18,8 +18,8 @@
 
         <label class="search-control">
             <span>Aeropuerto de destino</span>
-            <select @bind="destinationAirportId"
-                    disabled="@(IsLoading || isDestinationsLoading || originAirportId is null)">
+            <select @bind="destinationAirportId" @bind:after="LoadFlightNumbersAsync"
+                    disabled="@(IsLoading || isDestinationsLoading || isFlightNumbersLoading || originAirportId is null)">
                 <option value="">@(DestinationPlaceholder)</option>
                 @foreach (var airport in destinations)
                 {
@@ -30,19 +30,26 @@
 
         <label class="search-control">
             <span>Fecha de salida</span>
-            <input type="date" @bind="departureDate" disabled="@IsLoading" />
+            <input type="date" @bind="departureDate" @bind:after="LoadFlightNumbersAsync"
+                   disabled="@(IsLoading || isFlightNumbersLoading)" />
         </label>
 
         <label class="search-control">
             <span>Número de vuelo</span>
-            <input maxlength="8" placeholder="Ej. AE007" autocomplete="off"
-                   @bind="number" disabled="@IsLoading" />
+            <select @bind="number"
+                    disabled="@(IsLoading || isFlightNumbersLoading || !HasSelectedRoute)">
+                <option value="">@FlightNumberPlaceholder</option>
+                @foreach (var flightNumber in flightNumbers)
+                {
+                    <option value="@flightNumber">@flightNumber</option>
+                }
+            </select>
         </label>
 
         <label class="search-control">
             <span>Aerolínea</span>
             <select @bind="airlineId" @bind:after="LoadAirplanesAsync"
-                    disabled="@(IsLoading || isAirlinesLoading || isAirplanesLoading)">
+                    disabled="@(IsLoading || isAirlinesLoading || isAirplanesLoading || isFlightNumbersLoading)">
                 <option value="">@(isAirlinesLoading ? "Cargando aerolíneas…" : "Todas las aerolíneas")</option>
                 @foreach (var airline in airlines)
                 {
@@ -53,8 +60,8 @@
 
         <label class="search-control">
             <span>Avión</span>
-            <select @bind="airplaneId"
-                    disabled="@(IsLoading || isAirplanesLoading || airlineId is null)">
+            <select @bind="airplaneId" @bind:after="LoadFlightNumbersAsync"
+                    disabled="@(IsLoading || isAirplanesLoading || isFlightNumbersLoading || airlineId is null)">
                 <option value="">@AirplanePlaceholder</option>
                 @foreach (var airplane in airplanes)
                 {
@@ -108,11 +115,15 @@
     private bool isDestinationsLoading;
     private bool isAirlinesLoading;
     private bool isAirplanesLoading;
+    private bool isFlightNumbersLoading;
     private string? validationMessage;
     private IReadOnlyCollection<AirportViewModel> origins = [];
     private IReadOnlyCollection<AirportViewModel> destinations = [];
     private IReadOnlyCollection<AirlineOptionViewModel> airlines = [];
     private IReadOnlyCollection<AirplaneOptionViewModel> airplanes = [];
+    private IReadOnlyCollection<string> flightNumbers = [];
+
+    private bool HasSelectedRoute => originAirportId is not null && destinationAirportId is not null;
 
     private string DestinationPlaceholder => isDestinationsLoading
         ? "Cargando destinos…"
@@ -121,6 +132,12 @@
     private string AirplanePlaceholder => isAirplanesLoading
         ? "Cargando aviones…"
         : airlineId is null ? "Selecciona primero una aerolínea" : "Todos los aviones";
+
+    private string FlightNumberPlaceholder => isFlightNumbersLoading
+        ? "Cargando vuelos…"
+        : !HasSelectedRoute
+            ? "Selecciona primero origen y destino"
+            : flightNumbers.Count == 0 ? "No hay vuelos compatibles" : "Todos los vuelos";
 
     [Parameter]
     public bool IsLoading { get; set; }
@@ -176,8 +193,9 @@
         originAirportId = null;
         destinationAirportId = null;
         destinations = [];
-        departureDate = null;
         number = null;
+        flightNumbers = [];
+        departureDate = null;
         airlineId = null;
         airplaneId = null;
         airplanes = [];
@@ -193,6 +211,8 @@
     {
         destinationAirportId = null;
         destinations = [];
+        number = null;
+        flightNumbers = [];
         validationMessage = null;
 
         if (originAirportId is null)
@@ -225,6 +245,7 @@
 
         if (airlineId is null)
         {
+            await LoadFlightNumbersAsync();
             return;
         }
 
@@ -242,6 +263,40 @@
         finally
         {
             isAirplanesLoading = false;
+        }
+
+        await LoadFlightNumbersAsync();
+    }
+
+    private async Task LoadFlightNumbersAsync()
+    {
+        number = null;
+        flightNumbers = [];
+        validationMessage = null;
+
+        if (!HasSelectedRoute)
+        {
+            return;
+        }
+
+        isFlightNumbersLoading = true;
+        try
+        {
+            flightNumbers = await FlightsClient.ListFlightNumbersAsync(
+                originAirportId!.Value,
+                destinationAirportId!.Value,
+                departureDate,
+                airlineId,
+                airplaneId,
+                CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar los números de vuelo disponibles.";
+        }
+        finally
+        {
+            isFlightNumbersLoading = false;
         }
     }
 }

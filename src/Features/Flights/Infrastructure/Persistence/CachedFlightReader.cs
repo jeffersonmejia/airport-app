@@ -41,6 +41,21 @@ public sealed class CachedFlightReader(
             CachePolicy.QueryLifetime,
             cancellationToken);
 
+    public Task<IReadOnlyList<string>> ListFlightNumbersAsync(
+        FlightNumberFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var key = $"flights:filter-options:numbers:{filter.OriginAirportId}:" +
+            $"{filter.DestinationAirportId}:{filter.DepartureDate:yyyy-MM-dd}:" +
+            $"{filter.AirlineId}:{filter.AirplaneId}";
+
+        return cache.GetOrCreateAsync(
+            key,
+            token => innerReader.ListFlightNumbersAsync(filter, token),
+            CachePolicy.QueryLifetime,
+            cancellationToken);
+    }
+
     public Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,

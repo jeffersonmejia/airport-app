@@ -90,6 +90,42 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<string>> ListFlightNumbersAsync(
+        FlightNumberFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.Flights
+            .AsNoTracking()
+            .Where(flight =>
+                flight.OriginAirportId == filter.OriginAirportId &&
+                flight.DestinationAirportId == filter.DestinationAirportId);
+
+        if (filter.DepartureDate is not null)
+        {
+            var start = new DateTimeOffset(
+                filter.DepartureDate.Value.ToDateTime(TimeOnly.MinValue),
+                TimeSpan.Zero);
+            var end = start.AddDays(1);
+            query = query.Where(flight => flight.Departure >= start && flight.Departure < end);
+        }
+
+        if (filter.AirlineId is not null)
+        {
+            query = query.Where(flight => flight.AirlineId == filter.AirlineId);
+        }
+
+        if (filter.AirplaneId is not null)
+        {
+            query = query.Where(flight => flight.AirplaneId == filter.AirplaneId);
+        }
+
+        return await query
+            .Select(flight => flight.FlightNumber.Trim())
+            .Distinct()
+            .OrderBy(number => number)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,
@@ -117,7 +153,7 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
 
         if (!string.IsNullOrWhiteSpace(criteria.Number))
         {
-            query = query.Where(row => EF.Functions.ILike(row.FlightNumber, $"%{criteria.Number}%"));
+            query = query.Where(row => EF.Functions.ILike(row.FlightNumber.Trim(), criteria.Number));
         }
 
         if (criteria.AirlineId is not null)

@@ -50,6 +50,31 @@ public sealed class FlightsClient(HttpClient httpClient)
             $"api/flights/airplanes?airlineId={airlineId}",
             cancellationToken) ?? [];
 
+    public async Task<IReadOnlyCollection<string>> ListFlightNumbersAsync(
+        int originAirportId,
+        int destinationAirportId,
+        DateOnly? departureDate,
+        short? airlineId,
+        int? airplaneId,
+        CancellationToken cancellationToken)
+    {
+        var parameters = new Dictionary<string, string?>
+        {
+            ["originAirportId"] = originAirportId.ToString(),
+            ["destinationAirportId"] = destinationAirportId.ToString(),
+            ["departureDate"] = departureDate?.ToString("yyyy-MM-dd"),
+            ["airlineId"] = airlineId?.ToString(),
+            ["airplaneId"] = airplaneId?.ToString()
+        };
+        var query = string.Join('&', parameters
+            .Where(pair => pair.Value is not null)
+            .Select(pair => $"{pair.Key}={Uri.EscapeDataString(pair.Value!)}"));
+
+        return await httpClient.GetFromJsonAsync<IReadOnlyCollection<string>>(
+            $"api/flights/numbers?{query}",
+            cancellationToken) ?? [];
+    }
+
     public async Task<FlightSearchResultViewModel> SearchAsync(
         FlightSearchInput input,
         int page,
