@@ -7,8 +7,16 @@ using Airport.Features.Auth.Application.Roles;
 using Airport.Features.Auth.Infrastructure;
 using Airport.Features.Auth.Infrastructure.Security;
 using Airport.Features.Auth.Presentation.Api.Login;
+using Airport.Features.Auth.Presentation.Api.Google;
+using Airport.Features.Auth.Presentation.Api.Mfa;
+using Airport.Features.Auth.Presentation.Api.Session;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +37,26 @@ public static class AuthModule
         services.AddSingleton<LoginValidator>();
         services.AddScoped<LoginHandler>();
         services.AddAuthInfrastructure(configuration, connectionString);
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+
+        var google = configuration.GetSection(GoogleAuthOptions.SectionName)
+            .Get<GoogleAuthOptions>() ?? new GoogleAuthOptions();
+        services.AddSingleton(google);
+
+        var authentication = services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = "AirportAuth";
+            options.DefaultChallengeScheme = "AirportAuth";
+        });
+
+        authentication.AddPolicyScheme("AirportAuth", "JWT o cookie de Identity", options =>
+        {
+            options.ForwardDefaultSelector = context =>
+                context.Request.Headers.Authorization.ToString()
+                    .StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? JwtBearerDefaults.AuthenticationScheme
+                    : IdentityConstants.ApplicationScheme;
+        });
+        authentication.AddJwtBearer(options =>
             {
                 options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -54,6 +80,39 @@ public static class AuthModule
                     OnTokenValidated = ValidateActiveSessionAsync
                 };
             });
+        authentication.AddIdentityCookies();
+
+        services.Configure<CookieAuthenticationOptions>(
+            IdentityConstants.ApplicationScheme,
+            options =>
+            {
+                options.Cookie.Name = "Airport.Identity";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
+            });
+
+        if (google.IsConfigured)
+        {
+            authentication.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+            {
+                options.ClientId = google.ClientId;
+                options.ClientSecret = google.ClientSecret;
+                options.SignInScheme = IdentityConstants.ExternalScheme;
+                options.SaveTokens = false;
+            });
+        }
         services.AddAuthorizationBuilder()
             .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin));
 
@@ -63,7 +122,10 @@ public static class AuthModule
     public static IEndpointRouteBuilder MapAuthModule(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGroup("/api/auth")
-            .MapLogin();
+            .MapLogin()
+            .MapGoogleAuth()
+            .MapMfa()
+            .MapSession();
 
         return endpoints;
     }

@@ -1,0 +1,113 @@
+@page "/auth/google/callback"
+@using Airport.Features.Auth.Presentation.Web.Models
+@using Airport.Features.Auth.Presentation.Web.Services
+@inject AuthClient AuthClient
+@inject AuthSession AuthSession
+@inject NavigationManager Navigation
+
+<PageTitle>Acceso con Google | Airport</PageTitle>
+
+<section class="login-page" aria-labelledby="google-callback-title">
+    <div class="login-card">
+        <div class="login-card__intro">
+            <span class="login-card__icon material-symbols-rounded" aria-hidden="true">verified_user</span>
+            <h1 id="google-callback-title">Acceso con Google</h1>
+        </div>
+
+        @if (Status == "mfa")
+        {
+            <EditForm Model="mfa" OnValidSubmit="VerifyMfaAsync" FormName="google-mfa">
+                <div class="form-field">
+                    <label for="mfa-code">Código del autenticador</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">password</span>
+                        <InputText id="mfa-code" @bind-Value="mfa.Code" inputmode="numeric"
+                                   autocomplete="one-time-code" maxlength="8" disabled="@isLoading" />
+                    </div>
+                </div>
+                @if (errorMessage is not null)
+                {
+                    <div class="login-error" role="alert">@errorMessage</div>
+                }
+                <button class="primary-button login-submit" type="submit" disabled="@isLoading">
+                    Verificar código
+                </button>
+            </EditForm>
+        }
+        else if (errorMessage is not null)
+        {
+            <div class="login-error" role="alert">@errorMessage</div>
+            <a class="primary-button login-submit" href="/login">Volver al inicio de sesión</a>
+        }
+        else
+        {
+            <p>Terminando el inicio de sesión…</p>
+        }
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? Status { get; set; }
+
+    private readonly MfaCodeInput mfa = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Status == "success")
+        {
+            await LoadSessionAsync();
+            return;
+        }
+
+        if (Status != "mfa")
+        {
+            errorMessage = Status switch
+            {
+                "locked" => "La cuenta está bloqueada temporalmente.",
+                "account_exists" => "Ya existe una cuenta con ese correo y no está enlazada a Google.",
+                "email_required" => "Google no entregó un correo válido.",
+                _ => "No fue posible completar el acceso con Google."
+            };
+        }
+    }
+
+    private async Task VerifyMfaAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            if (!await AuthClient.CompleteMfaSignInAsync(mfa.Code, CancellationToken.None))
+            {
+                errorMessage = "El código del autenticador no es válido.";
+                return;
+            }
+
+            await LoadSessionAsync();
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No pudimos conectar con el servicio de autenticación.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadSessionAsync()
+    {
+        var session = await AuthClient.GetSessionAsync(CancellationToken.None);
+        if (session is null)
+        {
+            errorMessage = "La sesión de Google no pudo recuperarse.";
+            return;
+        }
+
+        AuthSession.SignIn(session);
+        Navigation.NavigateTo("/login");
+    }
+}

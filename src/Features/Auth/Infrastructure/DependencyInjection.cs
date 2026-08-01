@@ -1,6 +1,7 @@
 using Airport.Features.Auth.Application.Ports;
 using Airport.Features.Auth.Infrastructure.Persistence;
 using Airport.Features.Auth.Infrastructure.Security;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,19 @@ public static class DependencyInjection
         services.AddDbContextPool<AuthDbContext>(options =>
             options.UseNpgsql(connectionString, npgsql =>
                 npgsql.MapEnum<EmployeeDepartment>("employee_department", "airportdb")));
+        services.AddDbContextPool<IdentityAuthDbContext>(options =>
+            options.UseNpgsql(connectionString));
+        services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.SignIn.RequireConfirmedEmail = false;
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+            })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<IdentityAuthDbContext>()
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
         services.AddScoped<IEmployeeCredentialReader, PostgresEmployeeCredentialReader>();
 
         return services;

@@ -13,14 +13,18 @@ public sealed class AuthSession(HttpClient httpClient)
 
     public bool IsAdmin => IsAuthenticated && Current!.Roles.Contains("Admin", StringComparer.Ordinal);
 
+    public bool IsCookieSession => IsAuthenticated &&
+        string.Equals(Current!.TokenType, "Cookie", StringComparison.Ordinal);
+
     public bool IsInRole(string role) =>
         IsAuthenticated && Current!.Roles.Contains(role, StringComparer.Ordinal);
 
     public void SignIn(LoginResultViewModel session)
     {
         Current = session;
-        httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(session.TokenType, session.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = string.IsNullOrWhiteSpace(session.AccessToken)
+            ? null
+            : new AuthenticationHeaderValue(session.TokenType, session.AccessToken);
         Changed?.Invoke();
     }
 

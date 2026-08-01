@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Features\Administration\Presentation\Api\Airport.Features.Administration.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Presentation\Api\Airport.Features.Auth.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\Features\Flights\Presentation\Api\Airport.Features.Flights.Presentation.Api.csproj" />
+    <ProjectReference Include="..\..\Features\Payments\Presentation\Api\Airport.Features.Payments.Presentation.Api.csproj" />
   </ItemGroup>
 
 </Project>

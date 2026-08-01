@@ -1,0 +1,116 @@
+@page "/account/security/mfa"
+@using Airport.Features.Auth.Presentation.Web.Models
+@using Airport.Features.Auth.Presentation.Web.Services
+@inject AuthClient AuthClient
+
+<PageTitle>Autenticación en dos pasos | Airport</PageTitle>
+
+<section class="mfa-page" aria-labelledby="mfa-title">
+    <div class="mfa-card">
+        <span class="eyebrow">Seguridad de la cuenta</span>
+        <h1 id="mfa-title">Autenticación en dos pasos</h1>
+
+        @if (isLoading)
+        {
+            <p>Cargando configuración…</p>
+        }
+        else if (setup is null)
+        {
+            <div class="login-error" role="alert">
+                Inicia sesión con Google para configurar MFA.
+            </div>
+        }
+        else if (setup.IsEnabled)
+        {
+            <div class="login-success" role="status">MFA está activo en tu cuenta.</div>
+            <button class="text-button" type="button" @onclick="DisableAsync">Desactivar MFA</button>
+        }
+        else
+        {
+            <ol class="mfa-steps">
+                <li>Abre Google Authenticator, Microsoft Authenticator u otra aplicación TOTP.</li>
+                <li>Escanea este código QR.</li>
+            </ol>
+            <img class="mfa-qr" src="@setup.QrCodeDataUri"
+                 alt="Código QR para enlazar la aplicación de autenticación" />
+            <details class="mfa-manual">
+                <summary>Ingresar la clave manualmente</summary>
+                <code>@setup.SharedKey</code>
+            </details>
+            <EditForm Model="input" OnValidSubmit="EnableAsync" FormName="enable-mfa">
+                <div class="form-field">
+                    <label for="verification-code">Código de verificación</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">password</span>
+                        <InputText id="verification-code" @bind-Value="input.Code"
+                                   inputmode="numeric" autocomplete="one-time-code" maxlength="8" />
+                    </div>
+                </div>
+                @if (errorMessage is not null)
+                {
+                    <div class="login-error" role="alert">@errorMessage</div>
+                }
+                <button class="primary-button" type="submit">Activar MFA</button>
+            </EditForm>
+        }
+
+        @if (recoveryCodes.Count > 0)
+        {
+            <div class="mfa-recovery" role="status">
+                <h2>Guarda tus códigos de recuperación</h2>
+                <p>Se muestran una sola vez.</p>
+                <div class="mfa-recovery__codes">
+                    @foreach (var code in recoveryCodes)
+                    {
+                        <code>@code</code>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private readonly MfaCodeInput input = new();
+    private MfaSetupViewModel? setup;
+    private IReadOnlyCollection<string> recoveryCodes = [];
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            setup = await AuthClient.GetMfaSetupAsync(CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No pudimos consultar la configuración MFA.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task EnableAsync()
+    {
+        errorMessage = null;
+        var result = await AuthClient.EnableMfaAsync(input.Code, CancellationToken.None);
+        if (result is null)
+        {
+            errorMessage = "El código no coincide. Revisa el autenticador e inténtalo otra vez.";
+            return;
+        }
+
+        recoveryCodes = result.RecoveryCodes;
+        setup = setup! with { IsEnabled = true };
+    }
+
+    private async Task DisableAsync()
+    {
+        await AuthClient.DisableMfaAsync(CancellationToken.None);
+        setup = await AuthClient.GetMfaSetupAsync(CancellationToken.None);
+        recoveryCodes = [];
+    }
+}

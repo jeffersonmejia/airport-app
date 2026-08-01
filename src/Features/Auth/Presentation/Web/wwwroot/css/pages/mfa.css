@@ -1,0 +1,67 @@
+.mfa-page {
+    display: grid;
+    place-items: center;
+    min-height: calc(100vh - 208px);
+}
+
+.mfa-card {
+    display: grid;
+    gap: 20px;
+    width: min(620px, 100%);
+    padding: clamp(28px, 5vw, 44px);
+    background: var(--surface);
+    border: 1px solid var(--outline-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.mfa-card h1,
+.mfa-card h2,
+.mfa-card p {
+    margin: 0;
+}
+
+.mfa-steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-left: 22px;
+    color: var(--text-muted);
+}
+
+.mfa-qr {
+    width: min(280px, 100%);
+    margin-inline: auto;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+}
+
+.mfa-manual {
+    color: var(--text-muted);
+}
+
+.mfa-manual code {
+    display: block;
+    margin-top: 10px;
+    overflow-wrap: anywhere;
+    color: var(--text);
+}
+
+.mfa-card form,
+.mfa-recovery,
+.mfa-recovery__codes {
+    display: grid;
+    gap: 14px;
+}
+
+.mfa-recovery {
+    padding: 18px;
+    background: var(--surface-variant);
+    border-radius: var(--radius-sm);
+}
+
+.mfa-recovery__codes {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}

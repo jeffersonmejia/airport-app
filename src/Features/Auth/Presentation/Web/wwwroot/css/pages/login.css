@@ -128,6 +128,48 @@
     cursor: pointer;
 }
 
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--outline-subtle);
+}
+
+.google-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 50px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.google-button:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--focus-halo);
+}
+
+.google-button__mark {
+    color: #4285f4;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
 .login-help {
     width: min(480px, 100%);
     color: var(--secondary);

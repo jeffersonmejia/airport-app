@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\Features\Administration\Presentation\Web\Airport.Features.Administration.Presentation.Web.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Presentation\Web\Airport.Features.Auth.Presentation.Web.csproj" />
     <ProjectReference Include="..\..\Features\Flights\Presentation\Web\Airport.Features.Flights.Presentation.Web.csproj" />
+    <ProjectReference Include="..\..\Features\Payments\Presentation\Web\Airport.Features.Payments.Presentation.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
