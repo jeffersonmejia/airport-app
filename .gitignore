@@ -1,8 +1,8 @@
 # Build de .NET
 **/bin/
 **/obj/
-artifacts/
-TestResults/
+/artifacts/
+/TestResults/
 *.trx
 *.coverage
 *.coveragexml
@@ -24,14 +24,13 @@ Thumbs.db
 # Paquetes y publicación
 *.nupkg
 *.snupkg
-packages/
-publish/
+/packages/
+/publish/
 
 # Configuración local y secretos
 .env
 .env.*
 !.env.example
-*.txt
 appsettings.Local.json
 appsettings.*.local.json
 secrets.json
@@ -41,17 +40,19 @@ secrets.json
 *.pem
 .pgpass
 
-# Dump pesado entregado para el examen; no versionarlo
+# Dump pesado entregado para el examen
 /aeropuerto-db.sql
 *.sql.gz
 *.dump
 *.backup
 
 # Estado y temporales del importador
-.state/
-import-work/
+/.state/
+/import-work/
 *.log
 *.tmp
 *.pid
 
-docs/users.md
+# Archivos locales no versionados
+/.local/
+/AGENTS.md
