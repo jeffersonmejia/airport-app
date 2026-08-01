@@ -31,7 +31,9 @@
         <label class="search-control">
             <span>Fecha de salida</span>
             <input type="date" @bind="departureDate" @bind:after="LoadFlightNumbersAsync"
+                   min="@MinimumDepartureDateValue" max="@MaximumDepartureDateValue"
                    disabled="@(IsLoading || isFlightNumbersLoading)" />
+            <small>Disponible del 1 de junio al 1 de septiembre de 2015.</small>
         </label>
 
         <label class="search-control">
@@ -103,6 +105,11 @@
 </form>
 
 @code {
+    private const string MinimumDepartureDateValue = "2015-06-01";
+    private const string MaximumDepartureDateValue = "2015-09-01";
+    private static readonly DateOnly MinimumDepartureDate = new(2015, 6, 1);
+    private static readonly DateOnly MaximumDepartureDate = new(2015, 9, 1);
+
     private int? originAirportId;
     private int? destinationAirportId;
     private DateOnly? departureDate;
@@ -171,6 +178,13 @@
     private Task SubmitAsync()
     {
         validationMessage = null;
+        if (departureDate is not null &&
+            (departureDate.Value < MinimumDepartureDate || departureDate.Value > MaximumDepartureDate))
+        {
+            validationMessage = "La fecha debe estar entre el 1 de junio y el 1 de septiembre de 2015.";
+            return Task.CompletedTask;
+        }
+
         if (originAirportId is not null && originAirportId == destinationAirportId)
         {
             validationMessage = "El aeropuerto de destino debe ser diferente del origen.";
