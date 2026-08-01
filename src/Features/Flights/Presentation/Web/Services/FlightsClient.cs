@@ -37,6 +37,19 @@ public sealed class FlightsClient(HttpClient httpClient)
             cancellationToken) ?? [];
     }
 
+    public async Task<IReadOnlyCollection<AirlineOptionViewModel>> ListAirlinesAsync(
+        CancellationToken cancellationToken) =>
+        await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirlineOptionViewModel>>(
+            "api/flights/airlines",
+            cancellationToken) ?? [];
+
+    public async Task<IReadOnlyCollection<AirplaneOptionViewModel>> ListAirplanesAsync(
+        short airlineId,
+        CancellationToken cancellationToken) =>
+        await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirplaneOptionViewModel>>(
+            $"api/flights/airplanes?airlineId={airlineId}",
+            cancellationToken) ?? [];
+
     public async Task<FlightSearchResultViewModel> SearchAsync(
         FlightSearchInput input,
         int page,

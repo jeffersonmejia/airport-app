@@ -30,6 +30,16 @@ public sealed record AirportViewModel(int Id, string Iata, string Icao, string N
     public string Label => $"{Name} ({Iata})";
 }
 
+public sealed record AirlineOptionViewModel(short Id, string Iata, string Name)
+{
+    public string Label => string.IsNullOrWhiteSpace(Iata) ? Name : $"{Name} ({Iata})";
+}
+
+public sealed record AirplaneOptionViewModel(int Id, string Model, int Capacity)
+{
+    public string Label => $"{Model} · {Capacity} pasajeros";
+}
+
 public sealed record FlightSearchInput(
     int? OriginAirportId,
     int? DestinationAirportId,

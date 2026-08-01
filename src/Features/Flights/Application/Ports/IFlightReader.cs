@@ -10,6 +10,13 @@ public interface IFlightReader
         int? originAirportId,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
+        short airlineId,
+        CancellationToken cancellationToken);
+
     Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,

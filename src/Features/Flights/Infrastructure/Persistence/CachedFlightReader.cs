@@ -24,6 +24,23 @@ public sealed class CachedFlightReader(
             CachePolicy.QueryLifetime,
             cancellationToken);
 
+    public Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        CancellationToken cancellationToken) =>
+        cache.GetOrCreateAsync(
+            "flights:filter-options:airlines",
+            innerReader.ListAirlinesAsync,
+            CachePolicy.QueryLifetime,
+            cancellationToken);
+
+    public Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
+        short airlineId,
+        CancellationToken cancellationToken) =>
+        cache.GetOrCreateAsync(
+            $"flights:filter-options:airplanes:airline:{airlineId}",
+            token => innerReader.ListAirplanesAsync(airlineId, token),
+            CachePolicy.QueryLifetime,
+            cancellationToken);
+
     public Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,

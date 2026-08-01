@@ -49,6 +49,47 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<AirlineFilterOption>> ListAirlinesAsync(
+        CancellationToken cancellationToken)
+    {
+        var availableAirlineIds = dbContext.Flights
+            .Select(flight => flight.AirlineId)
+            .Distinct();
+
+        return await dbContext.Airlines
+            .AsNoTracking()
+            .Where(airline => availableAirlineIds.Contains(airline.AirlineId))
+            .OrderBy(airline => airline.Name)
+            .Select(airline => new AirlineFilterOption(
+                airline.AirlineId,
+                airline.Iata.Trim(),
+                airline.Name))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AirplaneFilterOption>> ListAirplanesAsync(
+        short airlineId,
+        CancellationToken cancellationToken)
+    {
+        var availableAirplaneIds = dbContext.Flights
+            .Where(flight => flight.AirlineId == airlineId)
+            .Select(flight => flight.AirplaneId)
+            .Distinct();
+
+        return await dbContext.Airplanes
+            .AsNoTracking()
+            .Where(airplane =>
+                airplane.AirlineId == airlineId &&
+                availableAirplaneIds.Contains(airplane.AirplaneId))
+            .OrderBy(airplane => airplane.Type.Identifier)
+            .ThenBy(airplane => airplane.AirplaneId)
+            .Select(airplane => new AirplaneFilterOption(
+                airplane.AirplaneId,
+                airplane.Type.Identifier,
+                airplane.Capacity))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<FlightSearchPage> SearchAsync(
         FlightSearchCriteria criteria,
         int page,

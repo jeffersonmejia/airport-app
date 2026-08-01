@@ -40,15 +40,27 @@
         </label>
 
         <label class="search-control">
-            <span>ID de aerolínea</span>
-            <input type="number" min="1" inputmode="numeric" placeholder="Ej. 2"
-                   @bind="airlineId" disabled="@IsLoading" />
+            <span>Aerolínea</span>
+            <select @bind="airlineId" @bind:after="LoadAirplanesAsync"
+                    disabled="@(IsLoading || isAirlinesLoading || isAirplanesLoading)">
+                <option value="">@(isAirlinesLoading ? "Cargando aerolíneas…" : "Todas las aerolíneas")</option>
+                @foreach (var airline in airlines)
+                {
+                    <option value="@airline.Id">@airline.Label</option>
+                }
+            </select>
         </label>
 
         <label class="search-control">
-            <span>ID de avión</span>
-            <input type="number" min="1" inputmode="numeric" placeholder="Ej. 4"
-                   @bind="airplaneId" disabled="@IsLoading" />
+            <span>Avión</span>
+            <select @bind="airplaneId"
+                    disabled="@(IsLoading || isAirplanesLoading || airlineId is null)">
+                <option value="">@AirplanePlaceholder</option>
+                @foreach (var airplane in airplanes)
+                {
+                    <option value="@airplane.Id">@airplane.Label</option>
+                }
+            </select>
         </label>
 
         <label class="search-control">
@@ -94,13 +106,21 @@
     private bool descending;
     private bool isOriginsLoading;
     private bool isDestinationsLoading;
+    private bool isAirlinesLoading;
+    private bool isAirplanesLoading;
     private string? validationMessage;
     private IReadOnlyCollection<AirportViewModel> origins = [];
     private IReadOnlyCollection<AirportViewModel> destinations = [];
+    private IReadOnlyCollection<AirlineOptionViewModel> airlines = [];
+    private IReadOnlyCollection<AirplaneOptionViewModel> airplanes = [];
 
     private string DestinationPlaceholder => isDestinationsLoading
         ? "Cargando destinos…"
         : originAirportId is null ? "Selecciona primero un origen" : "Todos los destinos";
+
+    private string AirplanePlaceholder => isAirplanesLoading
+        ? "Cargando aviones…"
+        : airlineId is null ? "Selecciona primero una aerolínea" : "Todos los aviones";
 
     [Parameter]
     public bool IsLoading { get; set; }
@@ -111,17 +131,23 @@
     protected override async Task OnInitializedAsync()
     {
         isOriginsLoading = true;
+        isAirlinesLoading = true;
         try
         {
-            origins = await FlightsClient.ListAirportsAsync(null, CancellationToken.None);
+            var originsTask = FlightsClient.ListAirportsAsync(null, CancellationToken.None);
+            var airlinesTask = FlightsClient.ListAirlinesAsync(CancellationToken.None);
+            await Task.WhenAll(originsTask, airlinesTask);
+            origins = await originsTask;
+            airlines = await airlinesTask;
         }
         catch (HttpRequestException)
         {
-            validationMessage = "No pudimos cargar los aeropuertos disponibles.";
+            validationMessage = "No pudimos cargar las opciones disponibles.";
         }
         finally
         {
             isOriginsLoading = false;
+            isAirlinesLoading = false;
         }
     }
 
@@ -154,6 +180,7 @@
         number = null;
         airlineId = null;
         airplaneId = null;
+        airplanes = [];
         sortBy = "departure";
         descending = false;
         validationMessage = null;
@@ -187,6 +214,34 @@
         finally
         {
             isDestinationsLoading = false;
+        }
+    }
+
+    private async Task LoadAirplanesAsync()
+    {
+        airplaneId = null;
+        airplanes = [];
+        validationMessage = null;
+
+        if (airlineId is null)
+        {
+            return;
+        }
+
+        isAirplanesLoading = true;
+        try
+        {
+            airplanes = await FlightsClient.ListAirplanesAsync(
+                airlineId.Value,
+                CancellationToken.None);
+        }
+        catch (HttpRequestException)
+        {
+            validationMessage = "No pudimos cargar los aviones para esa aerolínea.";
+        }
+        finally
+        {
+            isAirplanesLoading = false;
         }
     }
 }
