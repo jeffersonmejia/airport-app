@@ -1,5 +1,6 @@
 using Airport.Features.Payments.Application.CreatePayPalOrder;
 using Airport.Features.Payments.Application.Ports;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,15 +27,14 @@ public static class CreatePayPalOrderEndpoint
     private static async Task<IResult> HandleAsync(
         CreatePayPalOrderHttpRequest request,
         HttpRequest httpRequest,
+        ClaimsPrincipal principal,
         CreatePayPalOrderValidator validator,
         CreatePayPalOrderHandler handler,
         CancellationToken cancellationToken)
     {
         var command = new CreatePayPalOrderCommand(
-            request.Amount,
-            request.CurrencyCode,
-            request.ReferenceId,
-            request.Description,
+            request.OrderId,
+            principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
             httpRequest.Headers["PayPal-Request-Id"].ToString());
         var errors = validator.Validate(command);
 
@@ -52,11 +52,14 @@ public static class CreatePayPalOrderEndpoint
         {
             return PayPalProblemResults.GatewayFailure(exception);
         }
+        catch (PaymentOrderException exception)
+        {
+            return Results.Problem(
+                title: "La orden no puede pagarse",
+                detail: exception.Message,
+                statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
     }
 
-    public sealed record CreatePayPalOrderHttpRequest(
-        decimal Amount,
-        string CurrencyCode,
-        string ReferenceId,
-        string Description);
+    public sealed record CreatePayPalOrderHttpRequest(Guid OrderId);
 }

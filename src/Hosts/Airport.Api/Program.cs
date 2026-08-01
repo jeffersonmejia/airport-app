@@ -2,6 +2,7 @@ using Airport.Caching;
 using Airport.Api.ErrorHandling;
 using Airport.Features.Administration.Presentation.Api;
 using Airport.Features.Auth.Presentation.Api;
+using Airport.Features.Bookings.Presentation.Api;
 using Airport.Features.Flights.Presentation.Api;
 using Airport.Features.Payments.Presentation.Api;
 
@@ -24,6 +25,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddApiErrorHandling();
 builder.Services.AddAirportCaching();
 builder.Services.AddAuthModule(builder.Configuration, connectionString);
+builder.Services.AddBookingsModule(connectionString);
 builder.Services.AddAdministrationModule(connectionString);
 builder.Services.AddPaymentsModule(builder.Configuration);
 builder.Services.AddCors(options =>
@@ -57,6 +59,7 @@ app.MapGet("/", () => Results.Ok(new
 
 app.MapFlightsModule();
 app.MapAuthModule();
+app.MapBookingsModule();
 app.MapAdministrationModule();
 app.MapPaymentsModule();
 

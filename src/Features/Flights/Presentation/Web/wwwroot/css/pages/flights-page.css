@@ -38,6 +38,22 @@
     line-height: 1.7;
 }
 
+.bootstrap-note {
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    color: var(--on-primary-container);
+    background: var(--primary-container);
+    border: 1px solid var(--outline-subtle);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.bootstrap-note .material-symbols-rounded {
+    color: var(--primary);
+    font-size: 18px;
+}
+
 
 .hero__visual {
     position: relative;

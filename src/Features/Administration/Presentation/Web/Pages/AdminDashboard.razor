@@ -83,6 +83,33 @@
                 </footer>
             </article>
         </div>
+
+        @if (commerce is not null)
+        {
+            <section class="admin-commerce" aria-labelledby="commerce-title">
+                <header class="section-heading">
+                    <div><span class="eyebrow">Compra de boletos</span><h2 id="commerce-title">Órdenes y transacciones</h2></div>
+                    <div class="admin-commerce__totals"><span>@commerce.PaidOrders pagadas</span><strong>USD @commerce.CapturedTotal.ToString("0.00")</strong></div>
+                </header>
+                <div class="admin-commerce__list">
+                    @foreach (var item in commerce.Items)
+                    {
+                        <article>
+                            <div><small>Vuelo</small><strong>@item.FlightNumber · @item.Route</strong></div>
+                            <div><small>Orden</small><strong>@item.OrderStatus</strong></div>
+                            <div><small>Pago</small><strong>@(item.PaymentStatus ?? "Sin iniciar")</strong></div>
+                            <div><small>Total</small><strong>@item.CurrencyCode @item.Total.ToString("0.00")</strong></div>
+                            <div><small>Boleto</small><strong>@(item.TicketNumber ?? "Pendiente")</strong></div>
+                        </article>
+                    }
+                </div>
+                <nav class="pagination">
+                    <button class="page-button" disabled="@(commerce.Page <= 1)" @onclick="() => LoadCommerceAsync(commerce.Page - 1)">Anterior</button>
+                    <span>Página @commerce.Page de @commerce.TotalPages</span>
+                    <button class="page-button" disabled="@(commerce.Page >= commerce.TotalPages)" @onclick="() => LoadCommerceAsync(commerce.Page + 1)">Siguiente</button>
+                </nav>
+            </section>
+        }
     }
 </section>
 
@@ -95,6 +122,7 @@
     ];
 
     private DatabaseSummaryViewModel? summary;
+    private CommerceOverviewViewModel? commerce;
     private bool isLoading;
     private string? errorMessage;
 
@@ -108,6 +136,7 @@
         try
         {
             summary = await AdministrationClient.GetDatabaseSummaryAsync(CancellationToken.None);
+            commerce = await AdministrationClient.GetCommerceAsync(1, CancellationToken.None);
         }
         catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized)
         {
@@ -130,6 +159,9 @@
             isLoading = false;
         }
     }
+
+    private async Task LoadCommerceAsync(int page) =>
+        commerce = await AdministrationClient.GetCommerceAsync(page, CancellationToken.None);
 
     private string BuildPieStyle()
     {

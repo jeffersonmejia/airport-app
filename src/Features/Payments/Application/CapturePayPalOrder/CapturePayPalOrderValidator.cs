@@ -18,6 +18,11 @@ public sealed class CapturePayPalOrderValidator
             errors[nameof(command.IdempotencyKey)] = ["PayPal-Request-Id es obligatorio y admite hasta 108 caracteres."];
         }
 
+        if (string.IsNullOrWhiteSpace(command.UserId))
+        {
+            errors[nameof(command.UserId)] = ["La sesión no es válida."];
+        }
+
         return errors;
     }
 }

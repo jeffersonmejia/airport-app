@@ -1,8 +1,10 @@
 using Airport.Features.Flights.Application.GetFlight;
 using Airport.Features.Flights.Application.SearchFlights;
+using Airport.Features.Flights.Application.ListAirports;
 using Airport.Features.Flights.Infrastructure;
 using Airport.Features.Flights.Presentation.Api.GetFlight;
 using Airport.Features.Flights.Presentation.Api.SearchFlights;
+using Airport.Features.Flights.Presentation.Api.ListAirports;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ public static class FlightsModule
         services.AddScoped<GetFlightHandler>();
         services.AddSingleton<SearchFlightsValidator>();
         services.AddScoped<SearchFlightsHandler>();
+        services.AddScoped<ListAirportsHandler>();
         services.AddFlightsInfrastructure(connectionString);
 
         return services;
@@ -28,6 +31,7 @@ public static class FlightsModule
     {
         endpoints.MapGroup("/api/flights")
             .MapGetFlight()
+            .MapListAirports()
             .MapSearchFlights();
 
         return endpoints;

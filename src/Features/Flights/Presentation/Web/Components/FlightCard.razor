@@ -13,7 +13,7 @@
         <div class="timeline__point">
             <small>Salida</small>
             <strong>@Flight.Departure.ToLocalTime().ToString("HH:mm")</strong>
-            <span>@Flight.Departure.ToLocalTime().ToString("dd MMM yyyy")</span>
+            <span>@Flight.OriginCode · @Flight.OriginName</span>
         </div>
         <div class="timeline__route">
             <span>@Flight.DurationHours.ToString("0.##") h</span>
@@ -23,17 +23,38 @@
         <div class="timeline__point timeline__point--end">
             <small>Llegada</small>
             <strong>@Flight.Arrival.ToLocalTime().ToString("HH:mm")</strong>
-            <span>@Flight.Arrival.ToLocalTime().ToString("dd MMM yyyy")</span>
+            <span>@Flight.DestinationCode · @Flight.DestinationName</span>
         </div>
     </div>
 
     <footer class="flight-card__footer">
-        <span><span class="material-symbols-rounded" aria-hidden="true">airlines</span> Aerolínea @Flight.AirlineId</span>
+        <span><span class="material-symbols-rounded" aria-hidden="true">airlines</span> @Flight.AirlineName</span>
         <span><span class="material-symbols-rounded" aria-hidden="true">airplane_ticket</span> Avión @Flight.AirplaneId</span>
     </footer>
+
+    @if (Flight.Fares is { Count: > 0 })
+    {
+        <section class="fare-options" aria-labelledby="fare-title">
+            <h3 id="fare-title">Selecciona tu tarifa</h3>
+            @foreach (var fare in Flight.Fares)
+            {
+                <button class="fare-option" type="button" @onclick="() => OnFareSelected.InvokeAsync(fare)">
+                    <span><strong>@fare.Name</strong><small>@fare.Code</small></span>
+                    <span class="fare-option__benefits">
+                        @(fare.AllowsChanges ? "Permite cambios" : "Sin cambios")
+                        @if (fare.PriorityBoarding) { <text> · Embarque prioritario</text> }
+                    </span>
+                    <strong>$@fare.Price.ToString("0.00")</strong>
+                </button>
+            }
+        </section>
+    }
 </article>
 
 @code {
     [Parameter, EditorRequired]
     public FlightViewModel Flight { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<FareViewModel> OnFareSelected { get; set; }
 }

@@ -1,6 +1,6 @@
 @using Airport.Features.Flights.Presentation.Web.Models
 
-<article class="flight-list-item">
+<button class="flight-list-item" type="button" @onclick="() => OnSelect.InvokeAsync(Flight.Id)">
     <div class="flight-list-item__icon">
         <span class="material-symbols-rounded" aria-hidden="true">flight</span>
     </div>
@@ -9,17 +9,20 @@
         <strong>@Flight.Number</strong>
     </div>
     <div>
+        <small>Ruta</small>
+        <strong>@Flight.OriginCode → @Flight.DestinationCode</strong>
+    </div>
+    <div>
         <small>Salida</small>
         <strong>@Flight.Departure.ToLocalTime().ToString("dd MMM · HH:mm")</strong>
     </div>
-    <div>
-        <small>Duración</small>
-        <strong>@Flight.DurationHours.ToString("0.##") h</strong>
-    </div>
-    <span class="flight-list-item__id">#@Flight.Id</span>
-</article>
+    <span class="flight-list-item__id">Desde $@Flight.FromPrice.ToString("0.00")</span>
+</button>
 
 @code {
     [Parameter, EditorRequired]
     public FlightViewModel Flight { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnSelect { get; set; }
 }

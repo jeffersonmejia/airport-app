@@ -1,0 +1,90 @@
+@page "/register"
+@using Airport.Features.Auth.Presentation.Web.Models
+@using Airport.Features.Auth.Presentation.Web.Services
+@inject AuthClient AuthClient
+
+<PageTitle>Crear cuenta | Airport</PageTitle>
+
+<section class="login-page" aria-labelledby="register-title">
+    <div class="login-card">
+        <div class="login-card__intro">
+            <span class="login-card__icon material-symbols-rounded" aria-hidden="true">person_add</span>
+            <span class="eyebrow">Cuenta de cliente</span>
+            <h1 id="register-title">Crea tu cuenta</h1>
+            <p>Usa tu correo para guardar órdenes, boletos y comprobantes.</p>
+        </div>
+
+        @if (sent)
+        {
+            <div class="login-success" role="status">
+                Revisa tu correo y confirma la cuenta antes de iniciar sesión.
+            </div>
+            <a class="primary-button login-submit" href="/login">Volver al inicio de sesión</a>
+        }
+        else
+        {
+            <EditForm Model="input" OnValidSubmit="RegisterAsync" FormName="register-account">
+                <DataAnnotationsValidator />
+                <div class="form-field">
+                    <label for="register-email">Correo</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+                        <InputText id="register-email" @bind-Value="input.Email" autocomplete="email" />
+                    </div>
+                    <ValidationMessage For="() => input.Email" />
+                </div>
+                <div class="form-field">
+                    <label for="register-password">Contraseña</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+                        <InputText id="register-password" type="password" @bind-Value="input.Password"
+                                   autocomplete="new-password" />
+                    </div>
+                    <ValidationMessage For="() => input.Password" />
+                </div>
+                <div class="form-field">
+                    <label for="register-confirm">Confirmar contraseña</label>
+                    <div class="input-shell">
+                        <span class="material-symbols-rounded" aria-hidden="true">lock_reset</span>
+                        <InputText id="register-confirm" type="password" @bind-Value="input.ConfirmPassword"
+                                   autocomplete="new-password" />
+                    </div>
+                    <ValidationMessage For="() => input.ConfirmPassword" />
+                </div>
+                @if (errorMessage is not null)
+                {
+                    <div class="login-error" role="alert">@errorMessage</div>
+                }
+                <button class="primary-button login-submit" type="submit" disabled="@isLoading">
+                    @(isLoading ? "Creando cuenta…" : "Crear cuenta")
+                </button>
+            </EditForm>
+        }
+    </div>
+</section>
+
+@code {
+    private readonly RegisterInput input = new();
+    private bool isLoading;
+    private bool sent;
+    private string? errorMessage;
+
+    private async Task RegisterAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            sent = await AuthClient.RegisterAsync(input, CancellationToken.None);
+            if (!sent) errorMessage = "No fue posible crear la cuenta. Revisa los datos.";
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No pudimos conectar con el servicio de registro.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

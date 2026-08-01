@@ -22,7 +22,7 @@ public sealed class SearchFlightsHandlerTests
         var handler = new SearchFlightsHandler(new StubFlightReader(flights, 17));
 
         var result = await handler.HandleAsync(
-            new SearchFlightsQuery(null, 2, 5),
+            new SearchFlightsQuery(null, null, null, null, "departure", false, 2, 5),
             CancellationToken.None);
 
         Assert.Single(result.Items);
@@ -37,8 +37,11 @@ public sealed class SearchFlightsHandlerTests
         public Task<Flight?> FindByIdAsync(int id, CancellationToken cancellationToken) =>
             Task.FromResult<Flight?>(null);
 
+        public Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+            CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<Airport.Features.Flights.Domain.Airport>>([]);
+
         public Task<FlightSearchPage> SearchAsync(
-            string? number,
+            FlightSearchCriteria criteria,
             int page,
             int pageSize,
             CancellationToken cancellationToken) =>

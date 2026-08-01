@@ -46,6 +46,10 @@
     border: 1px solid var(--outline-soft);
     border-radius: var(--radius-md);
     transition: border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
 }
 
 .flight-list-item:hover {

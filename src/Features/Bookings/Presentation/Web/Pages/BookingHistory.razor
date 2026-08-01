@@ -1,0 +1,40 @@
+@page "/my-trips"
+@using Airport.Features.Bookings.Presentation.Web.Models
+@using Airport.Features.Bookings.Presentation.Web.Services
+@inject BookingsClient BookingsClient
+
+<PageTitle>Mis viajes | Airport</PageTitle>
+
+<section class="booking-page" aria-labelledby="history-title">
+    <div class="booking-card booking-card--wide">
+        <span class="eyebrow">Historial personal</span>
+        <h1 id="history-title">Mis órdenes y boletos</h1>
+        @if (history is null) { <p>Cargando…</p> }
+        else if (history.Items.Count == 0) { <p>Aún no tienes órdenes.</p> }
+        else
+        {
+            <div class="booking-list">
+                @foreach (var item in history.Items)
+                {
+                    <article>
+                        <div><strong>@item.FlightNumber</strong><span>@item.OriginCode → @item.DestinationCode</span></div>
+                        <div><small>@item.FareName</small><strong>@item.CurrencyCode @item.Total.ToString("0.00")</strong></div>
+                        <span class="status-chip">@item.Status</span>
+                        <a class="text-button" href="/receipt/@item.OrderId">Comprobante</a>
+                    </article>
+                }
+            </div>
+            <nav class="pagination">
+                <button class="page-button" disabled="@(history.Page <= 1)" @onclick="() => LoadAsync(history.Page - 1)">Anterior</button>
+                <span>Página @history.Page de @history.TotalPages</span>
+                <button class="page-button" disabled="@(history.Page >= history.TotalPages)" @onclick="() => LoadAsync(history.Page + 1)">Siguiente</button>
+            </nav>
+        }
+    </div>
+</section>
+
+@code {
+    private BookingHistoryViewModel? history;
+    protected override Task OnInitializedAsync() => LoadAsync(1);
+    private async Task LoadAsync(int page) => history = await BookingsClient.GetHistoryAsync(page, CancellationToken.None);
+}

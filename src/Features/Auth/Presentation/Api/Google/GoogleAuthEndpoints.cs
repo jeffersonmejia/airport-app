@@ -66,7 +66,7 @@ public static class GoogleAuthEndpoints
         var result = await signInManager.ExternalLoginSignInAsync(
             info.LoginProvider,
             info.ProviderKey,
-            isPersistent: false,
+            isPersistent: true,
             bypassTwoFactor: false);
 
         if (result.Succeeded)
@@ -127,7 +127,7 @@ public static class GoogleAuthEndpoints
             return RedirectWithStatus(google.WebCallbackUrl, "error");
         }
 
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await signInManager.SignInAsync(user, isPersistent: true);
         return RedirectWithStatus(google.WebCallbackUrl, "success");
     }
 

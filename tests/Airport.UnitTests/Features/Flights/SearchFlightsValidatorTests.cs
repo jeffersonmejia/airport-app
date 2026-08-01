@@ -9,7 +9,7 @@ public sealed class SearchFlightsValidatorTests
     [Fact]
     public void Validate_WithValidPagination_ReturnsNoErrors()
     {
-        var errors = validator.Validate(new SearchFlightsQuery("AE", 1, 5));
+        var errors = validator.Validate(new SearchFlightsQuery(null, null, null, "AE", "departure", false, 1, 5));
 
         Assert.Empty(errors);
     }
@@ -20,7 +20,7 @@ public sealed class SearchFlightsValidatorTests
     [InlineData(1, 6)]
     public void Validate_WithInvalidPagination_ReturnsErrors(int page, int pageSize)
     {
-        var errors = validator.Validate(new SearchFlightsQuery(null, page, pageSize));
+        var errors = validator.Validate(new SearchFlightsQuery(null, null, null, null, "departure", false, page, pageSize));
 
         Assert.NotEmpty(errors);
     }

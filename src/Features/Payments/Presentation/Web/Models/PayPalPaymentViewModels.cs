@@ -1,10 +1,7 @@
 namespace Airport.Features.Payments.Presentation.Web.Models;
 
 public sealed record CreatePayPalOrderInput(
-    decimal Amount,
-    string CurrencyCode,
-    string ReferenceId,
-    string Description);
+    Guid OrderId);
 
 public sealed record PayPalOrderViewModel(
     string OrderId,
@@ -12,6 +9,7 @@ public sealed record PayPalOrderViewModel(
     string? ApprovalUrl);
 
 public sealed record PayPalCaptureViewModel(
+    Guid TicketOrderId,
     string OrderId,
     string Status,
     string? CaptureId,

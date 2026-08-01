@@ -1,0 +1,19 @@
+.booking-page { display: grid; place-items: center; min-height: calc(100vh - 208px); }
+.booking-card, .receipt-card { display: grid; gap: 20px; width: min(620px, 100%); padding: clamp(24px, 5vw, 42px); background: var(--surface); border: 1px solid var(--outline-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.booking-card--wide { width: min(880px, 100%); }
+.booking-card h1, .booking-card p, .receipt-card h1 { margin: 0; }
+.booking-fields { display: grid; gap: 14px; }
+.booking-fields label { display: grid; gap: 7px; font-size: .8rem; font-weight: 700; }
+.booking-fields input { min-height: 50px; padding: 0 14px; color: var(--text); background: var(--background); border: 1px solid var(--outline); border-radius: var(--radius-sm); }
+.booking-confirmation { display: flex; gap: 12px; padding: 16px; color: var(--success); background: var(--success-container); border-radius: var(--radius-sm); }
+.booking-error { padding: 14px; color: var(--on-error-container); background: var(--error-container); border-radius: var(--radius-sm); }
+.booking-list { display: grid; gap: 10px; }
+.booking-list article { display: grid; grid-template-columns: 1fr 1fr auto auto; align-items: center; gap: 16px; padding: 16px; background: var(--background); border: 1px solid var(--outline-soft); border-radius: var(--radius-sm); }
+.booking-list article div { display: grid; gap: 4px; }
+.receipt-card header { display: flex; justify-content: space-between; gap: 20px; }
+.receipt-card header > .material-symbols-rounded { color: var(--primary); font-size: 58px; }
+.receipt-card dl { display: grid; gap: 12px; margin: 0; }
+.receipt-card dl div { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--outline-soft); }
+.receipt-card dt { color: var(--text-muted); }
+.receipt-card dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 650px) { .booking-list article { grid-template-columns: 1fr 1fr; } .receipt-card dl div { grid-template-columns: 1fr; gap: 3px; } }

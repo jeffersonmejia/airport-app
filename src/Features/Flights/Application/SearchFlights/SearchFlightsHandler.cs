@@ -9,7 +9,13 @@ public sealed class SearchFlightsHandler(IFlightReader flightReader)
         CancellationToken cancellationToken)
     {
         var result = await flightReader.SearchAsync(
-            query.Number?.Trim(),
+            new FlightSearchCriteria(
+                query.OriginAirportId,
+                query.DestinationAirportId,
+                query.DepartureDate,
+                query.Number?.Trim(),
+                query.SortBy,
+                query.Descending),
             query.Page,
             query.PageSize,
             cancellationToken);

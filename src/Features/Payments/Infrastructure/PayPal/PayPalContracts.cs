@@ -23,7 +23,9 @@ internal sealed record PayPalAmountPayload(
 
 internal sealed record PayPalApplicationContextPayload(
     [property: JsonPropertyName("shipping_preference")] string ShippingPreference,
-    [property: JsonPropertyName("user_action")] string UserAction);
+    [property: JsonPropertyName("user_action")] string UserAction,
+    [property: JsonPropertyName("return_url")] string ReturnUrl,
+    [property: JsonPropertyName("cancel_url")] string CancelUrl);
 
 internal sealed record PayPalOrderResponse(
     [property: JsonPropertyName("id")] string Id,

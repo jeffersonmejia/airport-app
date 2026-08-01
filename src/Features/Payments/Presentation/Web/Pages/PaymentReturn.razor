@@ -1,0 +1,37 @@
+@page "/payment/return"
+@using Airport.Features.Payments.Presentation.Web.Services
+@inject PayPalPaymentsClient PaymentsClient
+@inject NavigationManager Navigation
+
+<PageTitle>Confirmando pago | Airport</PageTitle>
+
+<section class="payment-page">
+    <div class="payment-card" aria-live="polite">
+        <span class="material-symbols-rounded payment-card__icon">sync</span>
+        <h1>Confirmando tu pago</h1>
+        <p>@message</p>
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "token")] public string? PayPalOrderId { get; set; }
+    private string message = "Verificando el resultado con PayPal…";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrWhiteSpace(PayPalOrderId))
+        {
+            message = "PayPal no devolvió una orden válida.";
+            return;
+        }
+        try
+        {
+            var result = await PaymentsClient.CaptureOrderAsync(
+                PayPalOrderId,
+                $"capture-{PayPalOrderId}",
+                CancellationToken.None);
+            Navigation.NavigateTo($"/receipt/{result.TicketOrderId}");
+        }
+        catch (HttpRequestException) { message = "El pago no pudo confirmarse. No se emitió ningún boleto."; }
+    }
+}

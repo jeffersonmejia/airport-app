@@ -10,6 +10,7 @@ using Airport.Features.Auth.Presentation.Api.Login;
 using Airport.Features.Auth.Presentation.Api.Google;
 using Airport.Features.Auth.Presentation.Api.Mfa;
 using Airport.Features.Auth.Presentation.Api.Session;
+using Airport.Features.Auth.Presentation.Api.Account;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -41,6 +42,9 @@ public static class AuthModule
         var google = configuration.GetSection(GoogleAuthOptions.SectionName)
             .Get<GoogleAuthOptions>() ?? new GoogleAuthOptions();
         services.AddSingleton(google);
+        var account = configuration.GetSection(AccountOptions.SectionName)
+            .Get<AccountOptions>() ?? new AccountOptions();
+        services.AddSingleton(account);
 
         var authentication = services.AddAuthentication(options =>
         {
@@ -114,7 +118,8 @@ public static class AuthModule
             });
         }
         services.AddAuthorizationBuilder()
-            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin));
+            .AddPolicy("AdminOnly", policy => policy.RequireRole(ApplicationRoles.Admin))
+            .AddPolicy("ClientOnly", policy => policy.RequireRole(ApplicationRoles.Client));
 
         return services;
     }
@@ -123,6 +128,7 @@ public static class AuthModule
     {
         endpoints.MapGroup("/api/auth")
             .MapLogin()
+            .MapAccount()
             .MapGoogleAuth()
             .MapMfa()
             .MapSession();

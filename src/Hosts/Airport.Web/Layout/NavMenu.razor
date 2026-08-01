@@ -14,6 +14,13 @@
             <span>Administración</span>
         </NavLink>
     }
+    @if (AuthSession.IsInRole("Client"))
+    {
+        <NavLink class="nav-link" href="my-trips">
+            <span class="material-symbols-rounded" aria-hidden="true">confirmation_number</span>
+            <span>Mis viajes</span>
+        </NavLink>
+    }
     <NavLink class="nav-link" href="login">
         <span class="material-symbols-rounded" aria-hidden="true">
             @(AuthSession.IsAuthenticated ? "account_circle" : "login")

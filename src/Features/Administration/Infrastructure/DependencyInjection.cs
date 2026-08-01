@@ -1,4 +1,5 @@
 using Airport.Features.Administration.Application.GetDatabaseSummary;
+using Airport.Features.Administration.Application.GetCommerceOverview;
 using Airport.Features.Administration.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddDbContextPool<AdministrationDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IDatabaseSummaryReader, PostgresDatabaseSummaryReader>();
+        services.AddScoped<ICommerceOverviewReader, PostgresCommerceOverviewReader>();
         return services;
     }
 }

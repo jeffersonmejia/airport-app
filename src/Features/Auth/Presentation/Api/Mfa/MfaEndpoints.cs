@@ -119,7 +119,7 @@ public static class MfaEndpoints
     {
         var result = await signInManager.TwoFactorAuthenticatorSignInAsync(
             NormalizeCode(request.Code),
-            isPersistent: false,
+            isPersistent: true,
             rememberClient: false);
 
         return result.Succeeded

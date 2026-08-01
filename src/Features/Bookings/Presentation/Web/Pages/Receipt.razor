@@ -1,0 +1,31 @@
+@page "/receipt/{OrderId:guid}"
+@using Airport.Features.Bookings.Presentation.Web.Models
+@using Airport.Features.Bookings.Presentation.Web.Services
+@inject BookingsClient BookingsClient
+
+<PageTitle>Comprobante | Airport</PageTitle>
+
+<section class="booking-page">
+    @if (receipt is null) { <div class="booking-card"><p>Consultando comprobante…</p></div> }
+    else
+    {
+        <article class="receipt-card">
+            <header><div><span class="eyebrow">Comprobante Airport</span><h1>@receipt.OriginCode → @receipt.DestinationCode</h1></div><span class="material-symbols-rounded">airplane_ticket</span></header>
+            <dl>
+                <div><dt>Orden</dt><dd>@receipt.OrderId</dd></div>
+                <div><dt>Boleto</dt><dd>@(receipt.TicketNumber ?? "Pendiente de pago")</dd></div>
+                <div><dt>Pasajero</dt><dd>@receipt.PassengerFirstName @receipt.PassengerLastName</dd></div>
+                <div><dt>Vuelo</dt><dd>@receipt.FlightNumber · @receipt.Departure.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd></div>
+                <div><dt>Tarifa</dt><dd>@receipt.FareName</dd></div>
+                <div><dt>Total</dt><dd>@receipt.CurrencyCode @receipt.Total.ToString("0.00")</dd></div>
+                <div><dt>Estado</dt><dd>@receipt.Status</dd></div>
+            </dl>
+        </article>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+    private ReceiptViewModel? receipt;
+    protected override async Task OnParametersSetAsync() => receipt = await BookingsClient.GetReceiptAsync(OrderId, CancellationToken.None);
+}

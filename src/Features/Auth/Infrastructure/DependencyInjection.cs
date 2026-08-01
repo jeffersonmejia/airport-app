@@ -1,6 +1,7 @@
 using Airport.Features.Auth.Application.Ports;
 using Airport.Features.Auth.Infrastructure.Persistence;
 using Airport.Features.Auth.Infrastructure.Security;
+using Airport.Features.Auth.Infrastructure.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +29,14 @@ public static class DependencyInjection
                 "JWT clock skew must be between 0 and 120 seconds.")
             .ValidateOnStart();
 
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SmtpServer), "SMTP server is required.")
+            .Validate(options => options.Port is > 0 and <= 65535, "SMTP port is invalid.")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SenderEmail), "SMTP sender is required.")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.Password), "SMTP password is required.")
+            .ValidateOnStart();
+
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IActiveSessionRegistry, MemoryActiveSessionRegistry>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
@@ -40,7 +49,11 @@ public static class DependencyInjection
         services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = false;
+                options.SignIn.RequireConfirmedEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
             })
@@ -49,6 +62,7 @@ public static class DependencyInjection
             .AddSignInManager()
             .AddDefaultTokenProviders();
         services.AddScoped<IEmployeeCredentialReader, PostgresEmployeeCredentialReader>();
+        services.AddScoped<IAccountEmailSender, SmtpAccountEmailSender>();
 
         return services;
     }

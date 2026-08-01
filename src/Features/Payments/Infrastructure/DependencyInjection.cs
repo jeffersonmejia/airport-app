@@ -19,6 +19,8 @@ public static class DependencyInjection
                 "PayPal ClientSecret is required.")
             .Validate(options => options.HasValidSandboxBaseUrl,
                 "PayPal BaseUrl must target the HTTPS sandbox API.")
+            .Validate(options => options.HasValidWebUrls,
+                "PayPal ReturnUrl and CancelUrl must be absolute URLs.")
             .ValidateOnStart();
 
         services.AddSingleton(TimeProvider.System);

@@ -6,24 +6,14 @@ public sealed class CreatePayPalOrderValidator
     {
         var errors = new Dictionary<string, string[]>();
 
-        if (command.Amount <= 0 || command.Amount > 999_999.99m)
+        if (command.TicketOrderId == Guid.Empty)
         {
-            errors[nameof(command.Amount)] = ["El monto debe estar entre 0.01 y 999999.99."];
+            errors[nameof(command.TicketOrderId)] = ["La orden de compra no es válida."];
         }
 
-        if (!string.Equals(command.CurrencyCode?.Trim(), "USD", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(command.UserId))
         {
-            errors[nameof(command.CurrencyCode)] = ["La moneda permitida es USD."];
-        }
-
-        if (string.IsNullOrWhiteSpace(command.ReferenceId) || command.ReferenceId.Trim().Length > 255)
-        {
-            errors[nameof(command.ReferenceId)] = ["La referencia es obligatoria y admite hasta 255 caracteres."];
-        }
-
-        if (string.IsNullOrWhiteSpace(command.Description) || command.Description.Trim().Length > 127)
-        {
-            errors[nameof(command.Description)] = ["La descripción es obligatoria y admite hasta 127 caracteres."];
+            errors[nameof(command.UserId)] = ["La sesión no es válida."];
         }
 
         if (string.IsNullOrWhiteSpace(command.IdempotencyKey) || command.IdempotencyKey.Trim().Length > 108)

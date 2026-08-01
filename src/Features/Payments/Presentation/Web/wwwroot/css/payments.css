@@ -1,0 +1,6 @@
+.payment-page { display: grid; place-items: center; min-height: calc(100vh - 208px); }
+.payment-card { display: grid; justify-items: start; gap: 18px; width: min(520px, 100%); padding: clamp(28px, 5vw, 44px); background: var(--surface); border: 1px solid var(--outline-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.payment-card h1, .payment-card p { margin: 0; }
+.payment-card p { color: var(--text-muted); line-height: 1.65; }
+.payment-card__icon { display: grid; place-items: center; width: 58px; height: 58px; color: var(--on-primary); background: var(--primary); border-radius: 18px; font-size: 30px; }
+.payment-error { padding: 14px; color: var(--on-error-container); background: var(--error-container); border-radius: var(--radius-sm); }

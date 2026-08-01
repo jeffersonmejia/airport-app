@@ -1,0 +1,61 @@
+@page "/checkout"
+@using Airport.Features.Bookings.Presentation.Web.Models
+@using Airport.Features.Bookings.Presentation.Web.Services
+@inject BookingsClient BookingsClient
+
+<PageTitle>Crear orden | Airport</PageTitle>
+
+<section class="booking-page" aria-labelledby="checkout-title">
+    <div class="booking-card">
+        <span class="eyebrow">Compra de boleto</span>
+        <h1 id="checkout-title">Datos del pasajero</h1>
+        <p>La tarifa seleccionada es <strong>@FareCode</strong>. El total se recalculará en el servidor.</p>
+
+        @if (order is not null)
+        {
+            <div class="booking-confirmation" role="status">
+                <span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
+                <div>
+                    <strong>Orden @order.OrderId creada</strong>
+                    <p>@order.FlightNumber · @order.Route · @order.FareName</p>
+                    <p>Total: @order.CurrencyCode @order.Total.ToString("0.00")</p>
+                </div>
+            </div>
+            <a class="primary-button" href="/payment/@order.OrderId">Continuar al pago</a>
+        }
+        else
+        {
+            <EditForm Model="input" OnValidSubmit="CreateAsync" FormName="checkout-passenger">
+                <DataAnnotationsValidator />
+                <div class="booking-fields">
+                    <label>Nombre<InputText @bind-Value="input.PassengerFirstName" /></label>
+                    <label>Apellido<InputText @bind-Value="input.PassengerLastName" /></label>
+                    <label>Pasaporte<InputText @bind-Value="input.PassportNumber" /></label>
+                </div>
+                <ValidationSummary />
+                @if (errorMessage is not null) { <div class="booking-error" role="alert">@errorMessage</div> }
+                <button class="primary-button" type="submit" disabled="@isLoading">
+                    @(isLoading ? "Creando orden…" : "Crear orden")
+                </button>
+            </EditForm>
+        }
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromQuery] public int FlightId { get; set; }
+    [SupplyParameterFromQuery] public string FareCode { get; set; } = string.Empty;
+    private readonly CheckoutInput input = new();
+    private OrderViewModel? order;
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task CreateAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try { order = await BookingsClient.CreateOrderAsync(FlightId, FareCode, input, CancellationToken.None); }
+        catch (HttpRequestException) { errorMessage = "No fue posible crear la orden. Inicia sesión como cliente y revisa los datos."; }
+        finally { isLoading = false; }
+    }
+}

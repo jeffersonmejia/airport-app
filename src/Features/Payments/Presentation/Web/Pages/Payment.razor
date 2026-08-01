@@ -1,0 +1,47 @@
+@page "/payment/{OrderId:guid}"
+@using Airport.Features.Payments.Presentation.Web.Models
+@using Airport.Features.Payments.Presentation.Web.Services
+@inject PayPalPaymentsClient PaymentsClient
+@inject NavigationManager Navigation
+
+<PageTitle>Pago PayPal | Airport</PageTitle>
+
+<section class="payment-page" aria-labelledby="payment-title">
+    <div class="payment-card">
+        <span class="material-symbols-rounded payment-card__icon" aria-hidden="true">payments</span>
+        <span class="eyebrow">PayPal Sandbox</span>
+        <h1 id="payment-title">Completa tu pago</h1>
+        <p>El total se obtiene directamente de la orden y será verificado nuevamente al capturar el pago.</p>
+        @if (errorMessage is not null) { <div class="payment-error" role="alert">@errorMessage</div> }
+        <button class="primary-button" type="button" @onclick="StartAsync" disabled="@isLoading">
+            @(isLoading ? "Conectando con PayPal…" : "Pagar con PayPal")
+        </button>
+    </div>
+</section>
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task StartAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await PaymentsClient.CreateOrderAsync(
+                new CreatePayPalOrderInput(OrderId),
+                $"create-{OrderId:N}",
+                CancellationToken.None);
+            if (string.IsNullOrWhiteSpace(result.ApprovalUrl))
+            {
+                errorMessage = "PayPal no devolvió una dirección de aprobación.";
+                return;
+            }
+            Navigation.NavigateTo(result.ApprovalUrl, forceLoad: true);
+        }
+        catch (HttpRequestException) { errorMessage = "No fue posible iniciar el pago."; }
+        finally { isLoading = false; }
+    }
+}

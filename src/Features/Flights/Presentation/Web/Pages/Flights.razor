@@ -6,6 +6,7 @@
 @using Airport.Features.Flights.Presentation.Web.Services
 @using Airport.SharedKernel.Pagination
 @inject FlightsClient FlightsClient
+@inject NavigationManager Navigation
 
 <PageTitle>Vuelos | Airport</PageTitle>
 
@@ -18,7 +19,12 @@
         <h1 id="page-title">Encuentra tu próximo vuelo</h1>
         <p>Consulta vuelos disponibles y revisa su detalle antes de iniciar la compra.</p>
 
-        <FlightSearch IsLoading="isLoading" OnSearch="SearchAsync" />
+        <div class="bootstrap-note d-inline-flex align-items-center gap-2">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            <span>Consulta rápida y segura</span>
+        </div>
+
+        <FlightSearch IsLoading="isListLoading" Airports="airports" OnSearch="SearchAsync" />
     </div>
 
     <div class="hero__visual" aria-hidden="true">
@@ -53,7 +59,7 @@
                 <h2>No pudimos completar la búsqueda</h2>
                 <p>@errorMessage</p>
             </div>
-            <button class="text-button" type="button" @onclick="() => SearchAsync(currentFlightId)">Reintentar</button>
+            <button class="text-button" type="button" @onclick="() => SelectFlightAsync(currentFlightId)">Reintentar</button>
         </div>
     }
     else if (hasSearched && flight is null)
@@ -62,13 +68,13 @@
             <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
             <div>
                 <h2>Ese vuelo no aparece</h2>
-                <p>Revisa el identificador e intenta con otro número.</p>
+                <p>El vuelo seleccionado ya no está disponible.</p>
             </div>
         </div>
     }
     else if (flight is not null)
     {
-        <FlightCard Flight="flight" />
+        <FlightCard Flight="flight" OnFareSelected="StartBooking" />
     }
     else
     {
@@ -116,7 +122,7 @@
         <div class="flight-list">
             @foreach (var item in flightPage.Items)
             {
-                <FlightListItem Flight="item" />
+                <FlightListItem Flight="item" OnSelect="SelectFlightAsync" />
             }
         </div>
 
@@ -150,26 +156,42 @@
 
 @code {
     private const int PageSize = PaginationPolicy.PageSize;
-    private int? currentFlightId;
+    private int currentFlightId;
     private FlightViewModel? flight;
     private FlightSearchResultViewModel? flightPage;
+    private IReadOnlyCollection<AirportViewModel> airports = [];
     private string? errorMessage;
     private string? listError;
     private bool isLoading;
     private bool isListLoading;
     private bool hasSearched;
     private int currentPage = 1;
+    private FlightSearchInput currentSearch = new(null, null, null, null, "departure", false);
 
-    protected override async Task OnInitializedAsync() => await LoadPageAsync(1);
-
-    private async Task SearchAsync(int? flightId)
+    protected override async Task OnInitializedAsync()
     {
-        if (flightId is null or <= 0)
+        try
         {
-            errorMessage = "Ingresa un identificador de vuelo mayor que cero.";
-            hasSearched = true;
-            return;
+            airports = await FlightsClient.ListAirportsAsync(CancellationToken.None);
+            await LoadPageAsync(1);
         }
+        catch (HttpRequestException)
+        {
+            listError = SafeUserMessages.ServiceUnavailable;
+        }
+    }
+
+    private async Task SearchAsync(FlightSearchInput input)
+    {
+        currentSearch = input;
+        flight = null;
+        hasSearched = false;
+        await LoadPageAsync(1);
+    }
+
+    private async Task SelectFlightAsync(int flightId)
+    {
+        if (flightId <= 0) return;
 
         isLoading = true;
         hasSearched = true;
@@ -179,7 +201,7 @@
 
         try
         {
-            flight = await FlightsClient.FindByIdAsync(flightId.Value, CancellationToken.None);
+            flight = await FlightsClient.FindByIdAsync(flightId, CancellationToken.None);
         }
         catch (HttpRequestException exception)
             when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -209,7 +231,11 @@
 
         try
         {
-            flightPage = await FlightsClient.SearchAsync(page, PageSize, CancellationToken.None);
+            flightPage = await FlightsClient.SearchAsync(
+                currentSearch,
+                page,
+                PageSize,
+                CancellationToken.None);
         }
         catch (HttpRequestException exception)
             when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -229,4 +255,7 @@
             isListLoading = false;
         }
     }
+
+    private void StartBooking(FareViewModel fare) => Navigation.NavigateTo(
+        $"/checkout?flightId={flight!.Id}&fareCode={Uri.EscapeDataString(fare.Code)}");
 }

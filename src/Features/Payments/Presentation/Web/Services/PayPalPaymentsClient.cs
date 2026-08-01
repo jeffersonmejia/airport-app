@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Airport.Features.Payments.Presentation.Web.Models;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace Airport.Features.Payments.Presentation.Web.Services;
 
@@ -15,6 +16,7 @@ public sealed class PayPalPaymentsClient(HttpClient httpClient)
             Content = JsonContent.Create(input)
         };
         request.Headers.TryAddWithoutValidation("PayPal-Request-Id", idempotencyKey);
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -32,6 +34,7 @@ public sealed class PayPalPaymentsClient(HttpClient httpClient)
             HttpMethod.Post,
             $"api/payments/paypal/orders/{Uri.EscapeDataString(orderId)}/capture");
         request.Headers.TryAddWithoutValidation("PayPal-Request-Id", idempotencyKey);
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();

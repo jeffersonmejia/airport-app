@@ -13,37 +13,88 @@ public sealed class PostgresFlightReader(FlightsDbContext dbContext) : IFlightRe
             .Select(row => new Flight(
                 row.FlightId,
                 row.FlightNumber,
+                row.OriginAirportId,
+                (row.OriginAirport.Iata ?? row.OriginAirport.Icao).Trim(),
+                row.OriginAirport.Name,
+                row.DestinationAirportId,
+                (row.DestinationAirport.Iata ?? row.DestinationAirport.Icao).Trim(),
+                row.DestinationAirport.Name,
                 row.Departure,
                 row.Arrival,
                 row.AirlineId,
+                "Aerolínea " + row.AirlineId,
                 row.AirplaneId))
             .SingleOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+        CancellationToken cancellationToken) => await dbContext.Airports
+        .AsNoTracking()
+        .Where(row => row.Iata != null)
+        .OrderBy(row => row.Name)
+        .Select(row => new Airport.Features.Flights.Domain.Airport(
+            row.AirportId,
+            row.Iata!.Trim(),
+            row.Icao.Trim(),
+            row.Name))
+        .ToListAsync(cancellationToken);
+
     public async Task<FlightSearchPage> SearchAsync(
-        string? number,
+        FlightSearchCriteria criteria,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
         var query = dbContext.Flights.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(number))
+        if (criteria.OriginAirportId is not null)
         {
-            query = query.Where(row => EF.Functions.ILike(row.FlightNumber, $"%{number}%"));
+            query = query.Where(row => row.OriginAirportId == criteria.OriginAirportId);
+        }
+
+        if (criteria.DestinationAirportId is not null)
+        {
+            query = query.Where(row => row.DestinationAirportId == criteria.DestinationAirportId);
+        }
+
+        if (criteria.DepartureDate is not null)
+        {
+            var start = new DateTimeOffset(criteria.DepartureDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var end = start.AddDays(1);
+            query = query.Where(row => row.Departure >= start && row.Departure < end);
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.Number))
+        {
+            query = query.Where(row => EF.Functions.ILike(row.FlightNumber, $"%{criteria.Number}%"));
         }
 
         var totalItems = await query.CountAsync(cancellationToken);
-        var items = await query
-            .OrderBy(row => row.Departure)
+        var ordered = (criteria.SortBy, criteria.Descending) switch
+        {
+            ("arrival", true) => query.OrderByDescending(row => row.Arrival),
+            ("arrival", false) => query.OrderBy(row => row.Arrival),
+            ("number", true) => query.OrderByDescending(row => row.FlightNumber),
+            ("number", false) => query.OrderBy(row => row.FlightNumber),
+            (_, true) => query.OrderByDescending(row => row.Departure),
+            _ => query.OrderBy(row => row.Departure)
+        };
+        var items = await ordered
             .ThenBy(row => row.FlightId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(row => new Flight(
                 row.FlightId,
                 row.FlightNumber,
+                row.OriginAirportId,
+                (row.OriginAirport.Iata ?? row.OriginAirport.Icao).Trim(),
+                row.OriginAirport.Name,
+                row.DestinationAirportId,
+                (row.DestinationAirport.Iata ?? row.DestinationAirport.Icao).Trim(),
+                row.DestinationAirport.Name,
                 row.Departure,
                 row.Arrival,
                 row.AirlineId,
+                "Aerolínea " + row.AirlineId,
                 row.AirplaneId))
             .ToListAsync(cancellationToken);
 

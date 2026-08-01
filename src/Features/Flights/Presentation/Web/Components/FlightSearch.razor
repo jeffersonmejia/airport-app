@@ -1,56 +1,104 @@
-<form class="search-card" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Buscar vuelo">
-    <label for="flight-id">Identificador del vuelo</label>
-    <div class="search-field">
-        <span class="material-symbols-rounded search-field__icon" aria-hidden="true">search</span>
-        <input id="flight-id"
-               type="number"
-               min="1"
-               inputmode="numeric"
-               placeholder="Ej. 42"
-               @bind="flightId"
-               aria-describedby="flight-help" />
-        <button class="primary-button" type="submit" disabled="@IsLoading">
-            @if (IsLoading)
-            {
-                <span class="button-loader" aria-hidden="true"></span>
-                <span>Buscando</span>
-            }
-            else
-            {
-                <span>Buscar vuelo</span>
-                <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
-            }
-        </button>
+@using Airport.Features.Flights.Presentation.Web.Models
+
+<form class="search-card" @onsubmit="SubmitAsync" @onsubmit:preventDefault aria-label="Buscar vuelos disponibles">
+    <div class="search-grid">
+        <label class="search-control">
+            <span>Origen</span>
+            <select @bind="originAirportId" disabled="@IsLoading" required>
+                <option value="">Selecciona origen</option>
+                @foreach (var airport in Airports)
+                {
+                    <option value="@airport.Id">@airport.Label</option>
+                }
+            </select>
+        </label>
+
+        <label class="search-control">
+            <span>Destino</span>
+            <select @bind="destinationAirportId" disabled="@IsLoading" required>
+                <option value="">Selecciona destino</option>
+                @foreach (var airport in Airports)
+                {
+                    <option value="@airport.Id">@airport.Label</option>
+                }
+            </select>
+        </label>
+
+        <label class="search-control">
+            <span>Fecha</span>
+            <input type="date" @bind="departureDate" disabled="@IsLoading" required />
+        </label>
+
+        <label class="search-control">
+            <span>Número de vuelo</span>
+            <input maxlength="8" placeholder="Opcional" @bind="number" disabled="@IsLoading" />
+        </label>
+
+        <label class="search-control">
+            <span>Ordenar por</span>
+            <select @bind="sortBy" disabled="@IsLoading">
+                <option value="departure">Hora de salida</option>
+                <option value="arrival">Hora de llegada</option>
+                <option value="number">Número de vuelo</option>
+            </select>
+        </label>
+
+        <label class="search-control search-control--check">
+            <input type="checkbox" @bind="descending" disabled="@IsLoading" />
+            <span>Orden descendente</span>
+        </label>
     </div>
-    <small id="flight-help">Ingresa un número mayor que cero.</small>
+
+    @if (validationMessage is not null)
+    {
+        <p class="search-validation" role="alert">@validationMessage</p>
+    }
+
+    <button class="primary-button search-submit" type="submit" disabled="@IsLoading">
+        <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+        <span>@(IsLoading ? "Buscando…" : "Buscar vuelos")</span>
+    </button>
 </form>
 
-<div class="quick-search" aria-label="Búsquedas rápidas">
-    <span>Prueba con:</span>
-    @foreach (var suggestion in Suggestions)
-    {
-        <button class="filter-chip" type="button" @onclick="() => SelectSuggestionAsync(suggestion)">
-            <span class="material-symbols-rounded" aria-hidden="true">flight</span>
-            @suggestion
-        </button>
-    }
-</div>
-
 @code {
-    private static readonly int[] Suggestions = [1, 10, 42];
-    private int? flightId;
+    private int? originAirportId;
+    private int? destinationAirportId;
+    private DateOnly? departureDate;
+    private string? number;
+    private string sortBy = "departure";
+    private bool descending;
+    private string? validationMessage;
 
     [Parameter]
     public bool IsLoading { get; set; }
 
+    [Parameter]
+    public IReadOnlyCollection<AirportViewModel> Airports { get; set; } = [];
+
     [Parameter, EditorRequired]
-    public EventCallback<int?> OnSearch { get; set; }
+    public EventCallback<FlightSearchInput> OnSearch { get; set; }
 
-    private Task SubmitAsync() => OnSearch.InvokeAsync(flightId);
-
-    private Task SelectSuggestionAsync(int suggestion)
+    private Task SubmitAsync()
     {
-        flightId = suggestion;
-        return SubmitAsync();
+        validationMessage = null;
+        if (originAirportId is null || destinationAirportId is null || departureDate is null)
+        {
+            validationMessage = "Selecciona origen, destino y fecha para buscar.";
+            return Task.CompletedTask;
+        }
+
+        if (originAirportId is not null && originAirportId == destinationAirportId)
+        {
+            validationMessage = "El aeropuerto de destino debe ser diferente del origen.";
+            return Task.CompletedTask;
+        }
+
+        return OnSearch.InvokeAsync(new FlightSearchInput(
+            originAirportId,
+            destinationAirportId,
+            departureDate,
+            number?.Trim(),
+            sortBy,
+            descending));
     }
 }

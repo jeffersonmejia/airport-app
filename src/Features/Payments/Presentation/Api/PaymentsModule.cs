@@ -28,7 +28,7 @@ public static class PaymentsModule
     public static IEndpointRouteBuilder MapPaymentsModule(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGroup("/api/payments/paypal")
-            .RequireAuthorization("AdminOnly")
+            .RequireAuthorization("ClientOnly")
             .MapCreatePayPalOrder()
             .MapCapturePayPalOrder();
 

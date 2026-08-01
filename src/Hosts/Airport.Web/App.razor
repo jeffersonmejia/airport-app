@@ -1,12 +1,16 @@
 ﻿@using Airport.Features.Administration.Presentation.Web
 @using Airport.Features.Auth.Presentation.Web
+@using Airport.Features.Bookings.Presentation.Web
 @using Airport.Features.Flights.Presentation.Web
+@using Airport.Features.Payments.Presentation.Web
 
 <Router AppAssembly="@typeof(App).Assembly"
         AdditionalAssemblies="new[]
         {
             typeof(FlightsPresentationAssembly).Assembly,
             typeof(AuthPresentationAssembly).Assembly,
+            typeof(BookingsPresentationAssembly).Assembly,
+            typeof(PaymentsPresentationAssembly).Assembly,
             typeof(AdministrationPresentationAssembly).Assembly
         }"
         NotFoundPage="typeof(Pages.NotFound)">

@@ -21,6 +21,11 @@ public static class SearchFlightsEndpoint
 
     private static async Task<IResult> HandleAsync(
         string? number,
+        int? originAirportId,
+        int? destinationAirportId,
+        DateOnly? departureDate,
+        string? sortBy,
+        bool? descending,
         int? page,
         int? pageSize,
         SearchFlightsValidator validator,
@@ -28,7 +33,12 @@ public static class SearchFlightsEndpoint
         CancellationToken cancellationToken)
     {
         var query = new SearchFlightsQuery(
+            originAirportId,
+            destinationAirportId,
+            departureDate,
             number,
+            sortBy?.Trim().ToLowerInvariant() ?? "departure",
+            descending ?? false,
             page ?? PaginationPolicy.DefaultPage,
             pageSize ?? PaginationPolicy.PageSize);
         var errors = validator.Validate(query);

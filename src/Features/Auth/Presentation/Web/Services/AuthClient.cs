@@ -11,23 +11,41 @@ public sealed class AuthClient(HttpClient httpClient)
         httpClient.BaseAddress ?? throw new InvalidOperationException("La API no tiene dirección base."),
         "api/auth/google/login").ToString();
 
-    public async Task<LoginResultViewModel?> LoginAsync(
+    public async Task<LoginAttemptViewModel> LoginAsync(
         LoginCredentials credentials,
         CancellationToken cancellationToken)
     {
-        using var response = await httpClient.PostAsJsonAsync(
-            "api/auth/login",
-            credentials,
-            cancellationToken);
+        var isIdentityAccount = credentials.Username.Contains('@', StringComparison.Ordinal);
+        using var request = isIdentityAccount
+            ? CreateCookieRequest(HttpMethod.Post, "api/auth/account/login")
+            : new HttpRequestMessage(HttpMethod.Post, "api/auth/login");
+        request.Content = isIdentityAccount
+            ? JsonContent.Create(new { email = credentials.Username, credentials.Password })
+            : JsonContent.Create(new { username = credentials.Username, credentials.Password });
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode is HttpStatusCode.Accepted)
+        {
+            return new LoginAttemptViewModel(null, true);
+        }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized)
         {
-            return null;
+            return new LoginAttemptViewModel(null, false);
         }
 
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LoginResultViewModel>(
+        var session = await response.Content.ReadFromJsonAsync<LoginResultViewModel>(cancellationToken);
+        return new LoginAttemptViewModel(session, false);
+    }
+
+    public async Task<bool> RegisterAsync(RegisterInput input, CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.PostAsJsonAsync(
+            "api/auth/account/register",
+            input,
             cancellationToken);
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<AuthProviderAvailability> GetProvidersAsync(CancellationToken cancellationToken)

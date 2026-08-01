@@ -24,13 +24,34 @@ public sealed class FlightsClient(HttpClient httpClient)
             cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<AirportViewModel>> ListAirportsAsync(
+        CancellationToken cancellationToken) =>
+        await httpClient.GetFromJsonAsync<IReadOnlyCollection<AirportViewModel>>(
+            "api/flights/airports",
+            cancellationToken) ?? [];
+
     public async Task<FlightSearchResultViewModel> SearchAsync(
+        FlightSearchInput input,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
+        var parameters = new Dictionary<string, string?>
+        {
+            ["originAirportId"] = input.OriginAirportId?.ToString(),
+            ["destinationAirportId"] = input.DestinationAirportId?.ToString(),
+            ["departureDate"] = input.DepartureDate?.ToString("yyyy-MM-dd"),
+            ["number"] = input.Number,
+            ["sortBy"] = input.SortBy,
+            ["descending"] = input.Descending.ToString().ToLowerInvariant(),
+            ["page"] = page.ToString(),
+            ["pageSize"] = pageSize.ToString()
+        };
+        var query = string.Join('&', parameters
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .Select(pair => $"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(pair.Value!)}"));
         var result = await httpClient.GetFromJsonAsync<FlightSearchResultViewModel>(
-            $"api/flights?page={page}&pageSize={pageSize}",
+            $"api/flights?{query}",
             cancellationToken);
 
         return result ?? throw new InvalidOperationException(

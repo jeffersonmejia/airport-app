@@ -25,6 +25,26 @@ public sealed class SearchFlightsValidator
             errors[nameof(query.Number)] = ["El número de vuelo admite máximo 8 caracteres."];
         }
 
+        if (query.OriginAirportId is <= 0)
+        {
+            errors[nameof(query.OriginAirportId)] = ["El aeropuerto de origen no es válido."];
+        }
+
+        if (query.DestinationAirportId is <= 0)
+        {
+            errors[nameof(query.DestinationAirportId)] = ["El aeropuerto de destino no es válido."];
+        }
+
+        if (query.OriginAirportId is not null && query.OriginAirportId == query.DestinationAirportId)
+        {
+            errors[nameof(query.DestinationAirportId)] = ["El destino debe ser diferente del origen."];
+        }
+
+        if (query.SortBy is not ("departure" or "arrival" or "number"))
+        {
+            errors[nameof(query.SortBy)] = ["El ordenamiento solicitado no está permitido."];
+        }
+
         return errors;
     }
 }

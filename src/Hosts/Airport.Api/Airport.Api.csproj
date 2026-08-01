@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
   </ItemGroup>
 
@@ -17,6 +20,7 @@
     <ProjectReference Include="..\..\BuildingBlocks\Airport.Caching\Airport.Caching.csproj" />
     <ProjectReference Include="..\..\Features\Administration\Presentation\Api\Airport.Features.Administration.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Presentation\Api\Airport.Features.Auth.Presentation.Api.csproj" />
+    <ProjectReference Include="..\..\Features\Bookings\Presentation\Api\Airport.Features.Bookings.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\Features\Flights\Presentation\Api\Airport.Features.Flights.Presentation.Api.csproj" />
     <ProjectReference Include="..\..\Features\Payments\Presentation\Api\Airport.Features.Payments.Presentation.Api.csproj" />
   </ItemGroup>

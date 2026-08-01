@@ -114,6 +114,46 @@
     font-size: 20px;
 }
 
+.fare-options {
+    display: grid;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.fare-options h3 {
+    margin: 0 0 4px;
+}
+
+.fare-option {
+    display: grid;
+    grid-template-columns: minmax(120px, .8fr) 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 17px;
+    color: var(--text);
+    background: var(--background);
+    border: 1px solid var(--outline-soft);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+}
+
+.fare-option:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus-halo);
+}
+
+.fare-option span,
+.fare-option small {
+    display: block;
+}
+
+.fare-option small,
+.fare-option__benefits {
+    color: var(--text-muted);
+    font-size: .72rem;
+}
+
 .flight-card--skeleton {
     display: grid;
     gap: 16px;

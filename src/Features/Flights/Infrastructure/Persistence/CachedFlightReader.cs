@@ -15,18 +15,28 @@ public sealed class CachedFlightReader(
             CachePolicy.QueryLifetime,
             cancellationToken);
 
+    public Task<IReadOnlyList<Airport.Features.Flights.Domain.Airport>> ListAirportsAsync(
+        CancellationToken cancellationToken) =>
+        cache.GetOrCreateAsync(
+            "flights:airports",
+            innerReader.ListAirportsAsync,
+            CachePolicy.QueryLifetime,
+            cancellationToken);
+
     public Task<FlightSearchPage> SearchAsync(
-        string? number,
+        FlightSearchCriteria criteria,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var normalizedNumber = number?.Trim().ToUpperInvariant() ?? "all";
-        var key = $"flights:search:{normalizedNumber}:page:{page}:size:{pageSize}";
+        var normalizedNumber = criteria.Number?.Trim().ToUpperInvariant() ?? "all";
+        var key = $"flights:search:{criteria.OriginAirportId}:{criteria.DestinationAirportId}:" +
+            $"{criteria.DepartureDate:yyyy-MM-dd}:{normalizedNumber}:{criteria.SortBy}:" +
+            $"{criteria.Descending}:page:{page}:size:{pageSize}";
 
         return cache.GetOrCreateAsync(
             key,
-            token => innerReader.SearchAsync(number, page, pageSize, token),
+            token => innerReader.SearchAsync(criteria, page, pageSize, token),
             CachePolicy.QueryLifetime,
             cancellationToken);
     }

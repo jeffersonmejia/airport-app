@@ -3,13 +3,16 @@ using System.Net.Http.Json;
 using System.Text;
 using Airport.Features.Payments.Application.Ports;
 using Airport.Features.Payments.Domain;
+using Microsoft.Extensions.Options;
 
 namespace Airport.Features.Payments.Infrastructure.PayPal;
 
 internal sealed class PayPalPaymentGateway(
     IHttpClientFactory httpClientFactory,
-    PayPalAccessTokenProvider accessTokenProvider) : IPayPalGateway
+    PayPalAccessTokenProvider accessTokenProvider,
+    IOptions<PayPalOptions> options) : IPayPalGateway
 {
+    private readonly PayPalOptions settings = options.Value;
     public async Task<PayPalOrder> CreateOrderAsync(
         CreatePayPalOrderRequest request,
         CancellationToken cancellationToken)
@@ -23,7 +26,11 @@ internal sealed class PayPalPaymentGateway(
                 new PayPalAmountPayload(
                     request.Amount.CurrencyCode,
                     request.Amount.ToPayPalValue()))],
-            new PayPalApplicationContextPayload("NO_SHIPPING", "PAY_NOW"));
+            new PayPalApplicationContextPayload(
+                "NO_SHIPPING",
+                "PAY_NOW",
+                settings.ReturnUrl,
+                settings.CancelUrl));
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v2/checkout/orders")
         {
             Content = JsonContent.Create(payload)
