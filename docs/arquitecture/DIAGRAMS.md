@@ -380,156 +380,43 @@ autenticado, propiedad de la orden, precio autoritativo, pago Sandbox real, veri
 backend, idempotencia, transacción y emisión única del boleto.
 
 ```mermaid
-classDiagram
-    direction LR
+flowchart LR
+    subgraph presentation["Presentation"]
+        bookingApi["BookingEndpoints"]
+        paymentApi["CreatePayPalOrderEndpoint<br/>CapturePayPalOrderEndpoint"]
+    end
 
-    class BookingEndpoints {
-        +CreateAsync(request, principal)
-        +GetAsync(orderId, principal)
-        +GetHistoryAsync(page, principal)
-        +GetReceiptAsync(orderId, principal)
-    }
+    subgraph application["Application"]
+        createOrder["CreateOrderHandler"]
+        paymentHandlers["CreatePayPalOrderHandler<br/>CapturePayPalOrderHandler"]
+        dbPorts["Puertos PostgreSQL<br/>IBookingRepository<br/>IPaymentOrderStore"]
+        paypalPort["Puerto de pago<br/>IPayPalGateway"]
+    end
 
-    class CreateOrderValidator {
-        +Validate(command) Errors
-    }
+    subgraph domain["Domain"]
+        rules["TicketFare y TicketOrder<br/>Tarifa calculada en servidor"]
+    end
 
-    class CreateOrderHandler {
-        -IBookingRepository repository
-        -TimeProvider timeProvider
-        +HandleAsync(command) CreateOrderResponse
-    }
+    subgraph infrastructure["Infrastructure"]
+        postgresAdapters["PostgresBookingRepository<br/>PostgresPaymentOrderStore"]
+        paypalAdapter["PayPalPaymentGateway"]
+        context["BookingsDbContext"]
+    end
 
-    class IBookingRepository {
-        <<port>>
-        +FindFlightOfferAsync(flightId) FlightOffer
-        +AddAsync(order)
-        +FindOwnedAsync(orderId, userId) TicketOrder
-        +SearchOwnedAsync(userId, page, size) BookingHistoryPage
-    }
+    db[("PostgreSQL<br/>órdenes, pagos y boletos")]
+    paypal["PayPal Sandbox"]
 
-    class PostgresBookingRepository {
-        <<adapter>>
-        +FindFlightOfferAsync(flightId) FlightOffer
-        +AddAsync(order)
-        +FindOwnedAsync(orderId, userId) TicketOrder
-        +SearchOwnedAsync(userId, page, size) BookingHistoryPage
-    }
-
-    class TicketFare {
-        <<domain>>
-        +FromFlight(code, departure, arrival) TicketFare
-        +Price decimal
-    }
-
-    class TicketOrder {
-        <<domain>>
-        +UserId string
-        +Total decimal
-        +CurrencyCode string
-        +Status string
-        +PendingPayment string
-        +Paid string
-    }
-
-    class CreatePayPalOrderEndpoint {
-        +HandleAsync(request, principal)
-    }
-
-    class CreatePayPalOrderHandler {
-        -IPayPalGateway gateway
-        -IPaymentOrderStore store
-        +HandleAsync(command) Response
-    }
-
-    class CapturePayPalOrderEndpoint {
-        +HandleAsync(orderId, request, principal)
-    }
-
-    class CapturePayPalOrderHandler {
-        -IPayPalGateway gateway
-        -IPaymentOrderStore store
-        +HandleAsync(command) Response
-    }
-
-    class IPaymentOrderStore {
-        <<port>>
-        +FindPayableAsync(orderId, userId) PayableTicketOrder
-        +FindByIdempotencyKeyAsync(key, userId) RecordedPayPalPayment
-        +FindByProviderOrderAsync(providerId, userId) RecordedPayPalPayment
-        +RecordCreatedAsync(order, providerId, key)
-        +CompleteAsync(payment, captureId, amount, currency)
-    }
-
-    class PostgresPaymentOrderStore {
-        <<adapter>>
-        +RecordCreatedAsync(order, providerId, key)
-        +CompleteAsync(payment, captureId, amount, currency)
-    }
-
-    class IPayPalGateway {
-        <<port>>
-        +CreateOrderAsync(request) PayPalOrder
-        +CaptureOrderAsync(orderId, key) PayPalCapture
-    }
-
-    class PayPalPaymentGateway {
-        <<adapter>>
-        +CreateOrderAsync(request) PayPalOrder
-        +CaptureOrderAsync(orderId, key) PayPalCapture
-    }
-
-    class BookingsDbContext {
-        <<EF Core>>
-        +Orders DbSet
-        +OrderDetails DbSet
-        +Payments DbSet
-        +PurchasedTickets DbSet
-    }
-
-    class OrderRow {
-        +Id Guid
-        +UserId string
-        +Total decimal
-        +Status string
-        +Ticket PurchasedTicketRow
-        +Payments PaymentRow[]
-    }
-
-    class PaymentRow {
-        +ProviderOrderId string
-        +ProviderCaptureId string
-        +IdempotencyKey string
-        +Amount decimal
-        +CurrencyCode string
-        +Status string
-    }
-
-    class PurchasedTicketRow {
-        +TicketNumber string
-        +IssuedAt DateTimeOffset
-    }
-
-    BookingEndpoints --> CreateOrderValidator : valida
-    BookingEndpoints --> CreateOrderHandler : delega
-    CreateOrderHandler --> IBookingRepository : usa
-    CreateOrderHandler --> TicketFare : recalcula en servidor
-    CreateOrderHandler --> TicketOrder : crea PENDING_PAYMENT
-    PostgresBookingRepository ..|> IBookingRepository : implementa
-    PostgresBookingRepository --> BookingsDbContext : consulta y persiste
-
-    CreatePayPalOrderEndpoint --> CreatePayPalOrderHandler : delega con userId
-    CapturePayPalOrderEndpoint --> CapturePayPalOrderHandler : delega con userId
-    CreatePayPalOrderHandler --> IPaymentOrderStore : valida propiedad e idempotencia
-    CreatePayPalOrderHandler --> IPayPalGateway : crea solicitud
-    CapturePayPalOrderHandler --> IPaymentOrderStore : obtiene pago propio
-    CapturePayPalOrderHandler --> IPayPalGateway : captura y verifica
-    PostgresPaymentOrderStore ..|> IPaymentOrderStore : implementa
-    PayPalPaymentGateway ..|> IPayPalGateway : implementa
-    PostgresPaymentOrderStore --> BookingsDbContext : transacción serializable
-    BookingsDbContext --> OrderRow
-    OrderRow "1" *-- "many" PaymentRow
-    OrderRow "1" *-- "0..1" PurchasedTicketRow
+    bookingApi --> createOrder
+    paymentApi --> paymentHandlers
+    createOrder --> rules
+    createOrder --> dbPorts
+    paymentHandlers -->|propiedad e idempotencia| dbPorts
+    paymentHandlers -->|crear y verificar captura| paypalPort
+    postgresAdapters -. implementan .-> dbPorts
+    paypalAdapter -. implementa .-> paypalPort
+    postgresAdapters --> context
+    context -->|transacción y boleto único| db
+    paypalAdapter -->|crear y capturar| paypal
 ```
 
 ### Trazabilidad de los criterios prioritarios
